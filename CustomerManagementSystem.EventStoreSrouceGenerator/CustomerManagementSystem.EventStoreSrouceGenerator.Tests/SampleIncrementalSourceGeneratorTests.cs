@@ -1,0 +1,197 @@
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Xunit;
+
+namespace CustomerManagementSystem.EventStoreSrouceGenerator.Tests;
+
+public class SampleIncrementalSourceGeneratorTests
+{
+    //lang=csharp
+    private const string SourceTextWithFileScopedNamespace = """
+                                      namespace CustomerManagementSystem.Api.Shared;
+                                      public abstract partial record Event
+                                      {
+                                          public abstract Guid StreamId { get; }
+                                          public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                      
+                                          [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                          [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                      
+                                          protected Event() { }
+                                          
+                                      }
+
+                                      public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                          : Event
+                                      {
+                                          public override Guid StreamId => CustomerId;
+                                      }
+                                      """;
+    //lang=csharp
+    private const string SourceTextWithNormalNamespace = """
+                                      namespace CustomerManagementSystem.Api.Shared;
+                                      {
+                                          public abstract partial record Event
+                                          {
+                                              public abstract Guid StreamId { get; }
+                                              public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                          
+                                              [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                              [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                          
+                                              protected Event() { }
+                                              
+                                          }
+                                      
+                                          public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                              : Event
+                                          {
+                                              public override Guid StreamId => CustomerId;
+                                          }
+                                      }
+                                      """;
+    //lang=csharp
+    private const string SourceTextWithDifferentNamespace = """
+                                      namespace CustomerManagementSystem.Api.Shared;
+                                      {
+                                          public abstract partial record Event
+                                          {
+                                              public abstract Guid StreamId { get; }
+                                              public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                          
+                                              [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                              [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                          
+                                              protected Event() { }
+                                              
+                                          }
+                                      }
+                                      
+                                      namespace EventsNamespaces;
+                                      {
+                                          using CustomerManagementSystem.Api.Shared;
+                                          
+                                          public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                              : Event
+                                          {
+                                              public override Guid StreamId => CustomerId;
+                                          }
+                                      }
+                                      """;
+
+    //lang=csharp
+    private const string ExpectedGeneratedClassText = """
+                                                      // <auto-generated/>
+
+                                                      using System.Text.Json.Serialization;
+
+                                                      namespace CustomerManagementSystem.Api.Shared;
+
+                                                      [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
+                                                      [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
+                                                      public abstract partial record Event { }
+
+                                                      """;
+
+    //lang=csharp
+    private const string ExpectedWhenHavingDifferentNamespaces = """
+                                                      // <auto-generated/>
+
+                                                      using System.Text.Json.Serialization;
+                                                      using EventsNamespaces;
+
+                                                      namespace CustomerManagementSystem.Api.Shared;
+
+                                                      [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
+                                                      [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
+                                                      public abstract partial record Event { }
+
+                                                      """;
+
+    
+    [Fact]
+    public void GeneratePartialEventWithAttributes_When_NamespaceIsFileScoped()
+    {
+        // Create an instance of the source generator.
+        var generator = new SampleIncrementalSourceGenerator();
+
+        // Source generators should be tested using 'GeneratorDriver'.
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        // We need to create a compilation with the required source code.
+        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+            [CSharpSyntaxTree.ParseText(SourceTextWithFileScopedNamespace)],
+            [
+                // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            ]);
+
+        // Run generators and retrieve all results.
+        var runResult = driver.RunGenerators(compilation).GetRunResult();
+
+        // All generated files can be found in 'RunResults.GeneratedTrees'.
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+
+        // Complex generators should be tested using text comparison.
+        Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
+            ignoreLineEndingDifferences: true);
+    }
+    
+    [Fact]
+    public void GeneratePartialEventWithAttributes_When_NamespaceNormal()
+    {
+        // Create an instance of the source generator.
+        var generator = new SampleIncrementalSourceGenerator();
+
+        // Source generators should be tested using 'GeneratorDriver'.
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        // We need to create a compilation with the required source code.
+        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+            [CSharpSyntaxTree.ParseText(SourceTextWithNormalNamespace)],
+            [
+                // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            ]);
+
+        // Run generators and retrieve all results.
+        var runResult = driver.RunGenerators(compilation).GetRunResult();
+
+        // All generated files can be found in 'RunResults.GeneratedTrees'.
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+
+        // Complex generators should be tested using text comparison.
+        Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
+            ignoreLineEndingDifferences: true);
+    }
+    
+    [Fact]
+    public void GeneratePartialEventWithAttributes_When_DifferentNamespaces()
+    {
+        // Create an instance of the source generator.
+        var generator = new SampleIncrementalSourceGenerator();
+
+        // Source generators should be tested using 'GeneratorDriver'.
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        // We need to create a compilation with the required source code.
+        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+            [CSharpSyntaxTree.ParseText(SourceTextWithDifferentNamespace)],
+            [
+                // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            ]);
+
+        // Run generators and retrieve all results.
+        var runResult = driver.RunGenerators(compilation).GetRunResult();
+
+        // All generated files can be found in 'RunResults.GeneratedTrees'.
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+
+        // Complex generators should be tested using text comparison.
+        Assert.Equal(ExpectedWhenHavingDifferentNamespaces, generatedFileSyntax.GetText().ToString(),
+            ignoreLineEndingDifferences: true);
+    }
+
+}

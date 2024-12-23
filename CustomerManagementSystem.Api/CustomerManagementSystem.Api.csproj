@@ -21,6 +21,9 @@
         <ProjectReference Include="..\CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers.csproj"
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"
         />
+        <ProjectReference Include="..\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"
+        />
     </ItemGroup>
 
 </Project>
