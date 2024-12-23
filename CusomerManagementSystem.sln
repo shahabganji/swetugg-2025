@@ -9,6 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionF
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerManagementSystem.Analyzers", "CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers.csproj", "{2521024B-7DF5-45B6-B181-29DEEE7845CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerManagementSystem.Analyzers.Tests", "CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers.Tests\CustomerManagementSystem.Analyzers.Tests.csproj", "{31D53273-F6C1-4564-AAC7-207A13D0FBC9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{A058042E-44B3-42A8-B414-24B36B7A232D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "App", "App", "{B984FDF4-62A9-4951-A2EC-D7B1EC93B04D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,5 +31,19 @@ Global
 		{C3E719ED-7F00-41CF-96C8-D2B5E8E571DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3E719ED-7F00-41CF-96C8-D2B5E8E571DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3E719ED-7F00-41CF-96C8-D2B5E8E571DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2521024B-7DF5-45B6-B181-29DEEE7845CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2521024B-7DF5-45B6-B181-29DEEE7845CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2521024B-7DF5-45B6-B181-29DEEE7845CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2521024B-7DF5-45B6-B181-29DEEE7845CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31D53273-F6C1-4564-AAC7-207A13D0FBC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31D53273-F6C1-4564-AAC7-207A13D0FBC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31D53273-F6C1-4564-AAC7-207A13D0FBC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31D53273-F6C1-4564-AAC7-207A13D0FBC9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2521024B-7DF5-45B6-B181-29DEEE7845CF} = {A058042E-44B3-42A8-B414-24B36B7A232D}
+		{31D53273-F6C1-4564-AAC7-207A13D0FBC9} = {A058042E-44B3-42A8-B414-24B36B7A232D}
+		{C3E719ED-7F00-41CF-96C8-D2B5E8E571DA} = {B984FDF4-62A9-4951-A2EC-D7B1EC93B04D}
+		{69D3B8E2-C984-4ACA-921D-C2B461873B92} = {B984FDF4-62A9-4951-A2EC-D7B1EC93B04D}
 	EndGlobalSection
 EndGlobal

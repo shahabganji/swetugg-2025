@@ -31,7 +31,7 @@ public sealed class CosmosEventStore : IEventStore
 
         _ = await transactionalBatch.ExecuteAsync(CancellationToken.None);
 
-        Console.WriteLine($"Event written to the database: {@event.StreamId}");
+        Console.WriteLine($@"Event written to the database: {@event.StreamId}");
 
         // await _container.UpsertItemAsync<Event>(@event, new PartitionKey(@event.StreamId.ToString()));
     }
@@ -59,7 +59,7 @@ public sealed class CosmosEventStore : IEventStore
             if (readNext.Count == 0)
                 continue;
 
-            aggregate = new TA();
+            aggregate ??= new TA();
 
             foreach (var @event in readNext.Resource)
             {
