@@ -12,7 +12,7 @@ namespace CustomerManagementSystem.EventStoreSrouceGenerator;
 /// When using the source code as a baseline, an incremental source generator is preferable because it reduces the performance overhead.
 /// </summary>
 [Generator]
-public class SampleIncrementalSourceGenerator : IIncrementalGenerator
+public class JsonAttributesEventGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {

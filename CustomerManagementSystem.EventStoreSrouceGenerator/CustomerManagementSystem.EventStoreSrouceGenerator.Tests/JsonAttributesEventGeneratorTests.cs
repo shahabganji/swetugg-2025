@@ -5,7 +5,7 @@ using Xunit;
 
 namespace CustomerManagementSystem.EventStoreSrouceGenerator.Tests;
 
-public class SampleIncrementalSourceGeneratorTests
+public class JsonAttributesEventGeneratorTests
 {
     //lang=csharp
     private const string SourceTextWithFileScopedNamespace = """
@@ -114,13 +114,13 @@ public class SampleIncrementalSourceGeneratorTests
     public void GeneratePartialEventWithAttributes_When_NamespaceIsFileScoped()
     {
         // Create an instance of the source generator.
-        var generator = new SampleIncrementalSourceGenerator();
+        var generator = new JsonAttributesEventGenerator();
 
         // Source generators should be tested using 'GeneratorDriver'.
         var driver = CSharpGeneratorDriver.Create(generator);
 
         // We need to create a compilation with the required source code.
-        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+        var compilation = CSharpCompilation.Create(nameof(JsonAttributesEventGenerator),
             [CSharpSyntaxTree.ParseText(SourceTextWithFileScopedNamespace)],
             [
                 // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
@@ -142,13 +142,13 @@ public class SampleIncrementalSourceGeneratorTests
     public void GeneratePartialEventWithAttributes_When_NamespaceNormal()
     {
         // Create an instance of the source generator.
-        var generator = new SampleIncrementalSourceGenerator();
+        var generator = new JsonAttributesEventGenerator();
 
         // Source generators should be tested using 'GeneratorDriver'.
         var driver = CSharpGeneratorDriver.Create(generator);
 
         // We need to create a compilation with the required source code.
-        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+        var compilation = CSharpCompilation.Create(nameof(JsonAttributesEventGenerator),
             [CSharpSyntaxTree.ParseText(SourceTextWithNormalNamespace)],
             [
                 // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
@@ -170,13 +170,13 @@ public class SampleIncrementalSourceGeneratorTests
     public void GeneratePartialEventWithAttributes_When_DifferentNamespaces()
     {
         // Create an instance of the source generator.
-        var generator = new SampleIncrementalSourceGenerator();
+        var generator = new JsonAttributesEventGenerator();
 
         // Source generators should be tested using 'GeneratorDriver'.
         var driver = CSharpGeneratorDriver.Create(generator);
 
         // We need to create a compilation with the required source code.
-        var compilation = CSharpCompilation.Create(nameof(SampleIncrementalSourceGenerator),
+        var compilation = CSharpCompilation.Create(nameof(JsonAttributesEventGenerator),
             [CSharpSyntaxTree.ParseText(SourceTextWithDifferentNamespace)],
             [
                 // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
