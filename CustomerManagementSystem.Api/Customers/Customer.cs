@@ -34,11 +34,3 @@ public sealed partial class Customer : IAmAggregateRoot
     [JsonPropertyName("pk")] public string Pk => CustomerId.ToString();
     [JsonPropertyName("id")] public string Id => CustomerId.ToString();
 }
-
-
-// auto-generated
-public sealed partial class Customer
-{
-    // it has to be public if the Apply method is going to be on an abstract class/interface
-    private partial void Apply(CustomerRegistered @event);
-}

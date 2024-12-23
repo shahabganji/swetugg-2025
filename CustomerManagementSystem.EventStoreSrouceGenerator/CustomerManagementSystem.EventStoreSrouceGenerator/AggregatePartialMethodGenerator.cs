@@ -149,7 +149,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
 
             sb.AppendLine("}");
 
-            context.AddSource($"{aggregate.Name}AggregatePartialMethods.g.cs",
+            context.AddSource($"{aggregate.Name}Aggregate.PartialMethods.g.cs",
                 SourceText.From(sb.ToString(), Encoding.UTF8));
         }
     }

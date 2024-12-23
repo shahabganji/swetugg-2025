@@ -34,7 +34,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
     {
         if (syntaxNode is not RecordDeclarationSyntax recordDeclarationSyntax) return false;
 
-        var x = recordDeclarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString() == "Event\n") ?? false;
+        var x = recordDeclarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString().Contains("Event<")) ?? false;
         return x;
     }
 
@@ -50,7 +50,9 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         // Check if it inherits from `Event`
         var baseType = symbol.BaseType;
 
-        return baseType?.Name == "Event" ? symbol : null;
+        return baseType?.ToDisplayString().StartsWith("CustomerManagementSystem.Api.Shared.Event<") == true
+            ? symbol
+            : null;
     }
 
     private static void GenerateSource(SourceProductionContext context, ImmutableArray<INamedTypeSymbol> derivedTypes)

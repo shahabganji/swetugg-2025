@@ -9,76 +9,33 @@ public class JsonAttributesEventGeneratorTests
 {
     //lang=csharp
     private const string SourceTextWithFileScopedNamespace = """
-                                      namespace CustomerManagementSystem.Api.Shared;
-                                      public abstract partial record Event
-                                      {
-                                          public abstract Guid StreamId { get; }
-                                          public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
-                                      
-                                          [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
-                                          [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
-                                      
-                                          protected Event() { }
-                                          
-                                      }
+                                                             namespace CustomerManagementSystem.Api.Shared;
+                                                             
+                                                             public class Customer{}
+                                                             
+                                                             public abstract partial record Event
+                                                             {
+                                                                 public abstract Guid StreamId { get; }
+                                                             }
 
-                                      public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
-                                          : Event
-                                      {
-                                          public override Guid StreamId => CustomerId;
-                                      }
-                                      """;
-    //lang=csharp
-    private const string SourceTextWithNormalNamespace = """
-                                      namespace CustomerManagementSystem.Api.Shared;
-                                      {
-                                          public abstract partial record Event
-                                          {
-                                              public abstract Guid StreamId { get; }
-                                              public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
-                                          
-                                              [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
-                                              [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
-                                          
-                                              protected Event() { }
-                                              
-                                          }
-                                      
-                                          public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
-                                              : Event
-                                          {
-                                              public override Guid StreamId => CustomerId;
-                                          }
-                                      }
-                                      """;
-    //lang=csharp
-    private const string SourceTextWithDifferentNamespace = """
-                                      namespace CustomerManagementSystem.Api.Shared;
-                                      {
-                                          public abstract partial record Event
-                                          {
-                                              public abstract Guid StreamId { get; }
-                                              public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
-                                          
-                                              [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
-                                              [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
-                                          
-                                              protected Event() { }
-                                              
-                                          }
-                                      }
-                                      
-                                      namespace EventsNamespaces;
-                                      {
-                                          using CustomerManagementSystem.Api.Shared;
-                                          
-                                          public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
-                                              : Event
-                                          {
-                                              public override Guid StreamId => CustomerId;
-                                          }
-                                      }
-                                      """;
+                                                             public abstract partial record Event<TA>
+                                                             {
+                                                                 public abstract Guid StreamId { get; }
+                                                                 public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                                             
+                                                                 [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                                                 [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                                             
+                                                                 protected Event() { }
+                                                                 
+                                                             }
+
+                                                             public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                                                 : Event<Customer>
+                                                             {
+                                                                 public override Guid StreamId => CustomerId;
+                                                             }
+                                                             """;
 
     //lang=csharp
     private const string ExpectedGeneratedClassText = """
@@ -94,22 +51,6 @@ public class JsonAttributesEventGeneratorTests
 
                                                       """;
 
-    //lang=csharp
-    private const string ExpectedWhenHavingDifferentNamespaces = """
-                                                      // <auto-generated/>
-
-                                                      using System.Text.Json.Serialization;
-                                                      using EventsNamespaces;
-
-                                                      namespace CustomerManagementSystem.Api.Shared;
-
-                                                      [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
-                                                      [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
-                                                      public abstract partial record Event { }
-
-                                                      """;
-
-    
     [Fact]
     public void GeneratePartialEventWithAttributes_When_NamespaceIsFileScoped()
     {
@@ -137,7 +78,38 @@ public class JsonAttributesEventGeneratorTests
         Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
             ignoreLineEndingDifferences: true);
     }
-    
+
+    //lang=csharp
+    private const string SourceTextWithNormalNamespace = """
+                                                         namespace CustomerManagementSystem.Api.Shared;
+                                                         {
+                                                             public class Customer{}
+                                                             
+                                                             public abstract partial record Event
+                                                             {
+                                                                 public abstract Guid StreamId { get; }
+                                                             }
+                                                         
+                                                             public abstract partial record Event<TA>
+                                                             {
+                                                                 public abstract Guid StreamId { get; }
+                                                                 public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                                             
+                                                                 [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                                                 [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                                             
+                                                                 protected Event() { }
+                                                                 
+                                                             }
+                                                         
+                                                             public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                                                 : Event<Customer>
+                                                             {
+                                                                 public override Guid StreamId => CustomerId;
+                                                             }
+                                                         }
+                                                         """;
+
     [Fact]
     public void GeneratePartialEventWithAttributes_When_NamespaceNormal()
     {
@@ -165,7 +137,60 @@ public class JsonAttributesEventGeneratorTests
         Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
             ignoreLineEndingDifferences: true);
     }
-    
+
+    //lang=csharp
+    private const string SourceTextWithDifferentNamespace = """
+                                                            namespace CustomerManagementSystem.Api.Shared;
+                                                            {
+                                                                public class Customer{}
+                                                                
+                                                                public abstract partial record Event
+                                                                {
+                                                                    public abstract Guid StreamId { get; }
+                                                                }
+                                                            
+                                                                public abstract partial record Event<TA>
+                                                                {
+                                                                    public abstract Guid StreamId { get; }
+                                                                    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                                                
+                                                                    [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                                                    [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                                                
+                                                                    protected Event() { }
+                                                                    
+                                                                }
+                                                            }
+
+                                                            namespace EventsNamespaces;
+                                                            {
+                                                                using CustomerManagementSystem.Api.Shared;
+                                                                
+                                                                public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                                                    : Event<Customer>
+                                                                {
+                                                                    public override Guid StreamId => CustomerId;
+                                                                }
+                                                            }
+                                                            """;
+
+
+    //lang=csharp
+    private const string ExpectedWhenHavingDifferentNamespaces = """
+                                                                 // <auto-generated/>
+
+                                                                 using System.Text.Json.Serialization;
+                                                                 using EventsNamespaces;
+
+                                                                 namespace CustomerManagementSystem.Api.Shared;
+
+                                                                 [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
+                                                                 [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
+                                                                 public abstract partial record Event { }
+
+                                                                 """;
+
+
     [Fact]
     public void GeneratePartialEventWithAttributes_When_DifferentNamespaces()
     {
@@ -193,5 +218,4 @@ public class JsonAttributesEventGeneratorTests
         Assert.Equal(ExpectedWhenHavingDifferentNamespaces, generatedFileSyntax.GetText().ToString(),
             ignoreLineEndingDifferences: true);
     }
-
 }

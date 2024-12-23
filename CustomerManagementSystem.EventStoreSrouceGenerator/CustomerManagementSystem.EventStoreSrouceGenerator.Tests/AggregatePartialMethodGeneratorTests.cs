@@ -64,7 +64,7 @@ public class AggregatePartialMethodGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregatePartialMethods.g.cs"));
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregate.PartialMethods.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(expectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
@@ -134,7 +134,7 @@ public class AggregatePartialMethodGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregatePartialMethods.g.cs"));
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregate.PartialMethods.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(expectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
@@ -227,8 +227,8 @@ public class AggregatePartialMethodGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileForCustomerAggregate = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregatePartialMethods.g.cs"));
-        var generatedFileForBasketAggregate = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("BasketAggregatePartialMethods.g.cs"));
+        var generatedFileForCustomerAggregate = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("CustomerAggregate.PartialMethods.g.cs"));
+        var generatedFileForBasketAggregate = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("BasketAggregate.PartialMethods.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(expectedTextForCustomerAggregate, generatedFileForCustomerAggregate.GetText().ToString(),
