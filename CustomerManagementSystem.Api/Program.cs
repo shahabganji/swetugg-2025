@@ -52,9 +52,7 @@ app.MapPost("/customer", async (RegisterCustomer command, RegisterCustomerHandle
 app.MapGet("/customer/{id}", async (Guid id, IEventStore store) =>
     {
         var customer = await store.Get<Customer>(id);
-        return customer?.CustomerId == Guid.Empty
-            ? Results.NotFound()
-            : Results.Ok(customer);
+        return customer.Match(() => Results.NotFound(), Results.Ok);
     })
     .WithName("GetCustomer");
 

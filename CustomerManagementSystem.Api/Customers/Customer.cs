@@ -6,10 +6,10 @@ namespace CustomerManagementSystem.Api.Customers;
 
 public sealed partial class Customer : IAmAggregateRoot
 {
-    public Guid CustomerId { get; set; }
-    public string FullName { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public DateTime DateOfBirth { get; set; }
+    public Guid CustomerId { get; private set; }
+    public string FullName { get; private set; } = null!;
+    public string Email { get; private set; } = null!;
+    public DateTime DateOfBirth { get; private set; }
     
     public void Apply(Event @event)
     {

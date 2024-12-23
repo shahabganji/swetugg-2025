@@ -5,6 +5,15 @@ using CustomerManagementSystem.Api.Customers.Register;
 
 namespace CustomerManagementSystem.Api.Shared;
 
+/*
+ * If the following lines are not added it will throw the following exception
+ * Deserialization of interface or abstract types is not supported.
+ * Type 'CustomerManagementSystem.Api.Shared.Event'. Path: $[0] | LineNumber: 0 | BytePositionInLine: 2.
+ */
+
 [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
 [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
 public abstract partial record Event { }
+
+
+

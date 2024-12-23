@@ -1,5 +1,6 @@
+using CustomerManagementSystem.Api.Customers;
+using CustomerManagementSystem.Api.Shared.Fx;
 using Microsoft.Azure.Cosmos;
-using CosmosSystemTextJsonSerializer = CustomerManagementSystem.Api.Shared.Serializers.CosmosSystemTextJsonSerializer;
 
 
 namespace CustomerManagementSystem.Api.Shared;
@@ -40,7 +41,7 @@ public sealed class CosmosEventStore : IEventStore
     /// </summary>
     /// <param name="streamId">The unique identifier of the stream</param>
     /// <returns></returns>
-    public async Task<TA?> Get<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
+    public async Task<Maybe<TA>> Get<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
     {
         var streamIterator =
             _container.GetItemQueryIterator<Event>(
@@ -49,19 +50,27 @@ public sealed class CosmosEventStore : IEventStore
         if (!streamIterator.HasMoreResults)
             return default;
 
-        TA customer = new();
+        TA? aggregate = default(TA);
 
         while (streamIterator.HasMoreResults)
         {
             var readNext = await streamIterator.ReadNextAsync();
 
+            if (readNext.Count == 0)
+                continue;
+
+            aggregate = new TA();
+
             foreach (var @event in readNext.Resource)
             {
-                customer.Apply(@event);
+                aggregate.Apply(@event);
             }
         }
 
-        return customer;
+        if (aggregate is null)
+            throw new AggregateNotFoundException(streamId);
+
+        return aggregate;
     }
 
     /// <summary>
@@ -69,7 +78,7 @@ public sealed class CosmosEventStore : IEventStore
     /// </summary>
     /// <param name="streamId">The unique identifier of the stream</param>
     /// <returns></returns>
-    public async Task<TA?> GetSnapshot<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
+    public async Task<Maybe<TA>> GetSnapshot<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
     {
         try
         {
@@ -83,16 +92,7 @@ public sealed class CosmosEventStore : IEventStore
         }
         catch
         {
-            return default;
+            throw new AggregateNotFoundException(streamId);
         }
-    }
-
-    public FeedIterator<TA> GetChangeFeedIteratorFor<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
-    {
-        FeedIterator<TA> iteratorForPartitionKey = _container.GetChangeFeedIterator<TA>(
-            ChangeFeedStartFrom.Beginning(FeedRange.FromPartitionKey(new PartitionKey(streamId.ToString()))),
-            ChangeFeedMode.LatestVersion);
-
-        return iteratorForPartitionKey;
     }
 }
