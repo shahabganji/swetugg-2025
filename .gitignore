@@ -1,0 +1,66 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+# Rider specific files
+.idea/
+.riderModule.iml
+/.idea/
+/_ReSharper.Caches/
+
+# Visual Studio specific files
+.vs/
+/*.vs
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code specific files
+.vscode/
+.vscode/**/*
+.history/
+
+# Build output directories
+bin/
+obj/
+debug/
+release/
+Debug/
+Release/
+
+# Mac OS specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Packages directory (if not using NuGet package restore)
+packages/
+
+# Web-specific files
+node_modules/
+bower_components/
+
+# Logs and temporary files
+*.log
+*.temp
+*.tmp
+
+# Backup files
+*.bak
+*.swp
+*.swn
+*.swo
+*.bak~
+*.orig
+
+# IDE settings
+*.sln.DotSettings.user
+
