@@ -1,0 +1,16 @@
+@api_host = https://localhost:7078
+
+POST {{api_host}}/customer/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "CustomerId": "8b311274-10c1-4a41-bbac-e6477e16c797",
+  "FullName": "John Doe",
+  "Email": "johndoe@example.com",
+  "DateOfBirth": "2000-01-01T00:00:00"
+}
+
+###
+
+GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c797
