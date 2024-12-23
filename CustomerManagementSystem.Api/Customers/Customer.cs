@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CustomerManagementSystem.Api.Customers.Register;
+using CustomerManagementSystem.Api.Customers.UpdateContactsInfo;
 using CustomerManagementSystem.Api.Shared;
 
 namespace CustomerManagementSystem.Api.Customers;
@@ -22,6 +23,11 @@ public sealed partial class Customer : IAmAggregateRoot
         FullName = @event.FullName;
         Email = @event.Email;
         DateOfBirth = @event.DateOfBirth;
+    }
+
+    private partial void Apply(EmailUpdated @event)
+    {
+        Email = @event.Email;
     }
 
     public string StreamId => CustomerId.ToString();
