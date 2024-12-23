@@ -1,5 +1,6 @@
 using System.Reflection.Metadata;
 using CustomerManagementSystem.Api.Customers;
+using CustomerManagementSystem.Api.Customers.GetCustomer;
 using CustomerManagementSystem.Api.Customers.Register;
 using CustomerManagementSystem.Api.Shared;
 using CustomerManagementSystem.Api.Shared.Serializers;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<GetCustomerHandler>();
 builder.Services.AddScoped<RegisterCustomerHandler>();
 builder.Services.AddScoped<IEventStore>(_ =>
 {
@@ -49,9 +51,9 @@ app.MapPost("/customer", async (RegisterCustomer command, RegisterCustomerHandle
     })
     .WithName("RegisterCustomer");
 
-app.MapGet("/customer/{id}", async (Guid id, IEventStore store) =>
+app.MapGet("/customer/{id}", async (Guid id, GetCustomerHandler handler) =>
     {
-        var customer = await store.Get<Customer>(id);
+        var customer = await handler.Handle(new GetCustomer(id));
         return customer.Match(() => Results.NotFound(), Results.Ok);
     })
     .WithName("GetCustomer");
