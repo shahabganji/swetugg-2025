@@ -17,8 +17,7 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
 
         if (events.Count == 0)
         {
-            // Replace this with throw exception for demo purposes
-            return Maybe.None;
+            throw new InvalidOperationException("No events found");
         }
         
         TAggregate aggregate = new ();
