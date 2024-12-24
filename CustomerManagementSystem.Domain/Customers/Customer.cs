@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.Domain.Customers.UpdateContactsInfo;
 
@@ -28,8 +27,4 @@ public sealed partial class Customer : IAmAggregateRoot
     {
         Email = @event.Email;
     }
-
-    public string StreamId => CustomerId.ToString();
-    [JsonPropertyName("pk")] public string Pk => CustomerId.ToString();
-    [JsonPropertyName("id")] public string Id => CustomerId.ToString();
 }
