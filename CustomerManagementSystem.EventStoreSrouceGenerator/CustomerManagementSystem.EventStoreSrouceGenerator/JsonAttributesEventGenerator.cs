@@ -1,65 +1,98 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CustomerManagementSystem.EventStoreSrouceGenerator;
 
-/// <summary>
-/// A sample source generator that creates a custom report based on class properties. The target class should be annotated with the 'Generators.ReportAttribute' attribute.
-/// When using the source code as a baseline, an incremental source generator is preferable because it reduces the performance overhead.
-/// </summary>
 [Generator]
 public class JsonAttributesEventGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Select classes that might be derived from `Event`.
         var declarations = context.SyntaxProvider
+            // .ForAttributeWithMetadataName()// 👈 use the new API
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsCandidateForGeneration(s),
-                transform: static (ctx, _) => GetRecordDeclarationNamedSymbol(ctx))
+                // 👇 Runs for _every_ syntax node, on _every_ key press!
+                predicate: static (s, _) => IsCandidateForGeneratingJsonAttributes(s),
+                // 👇 Runs for _every_ node selected by the predicate, on _every_ key press!
+                transform: static (ctx, stoppingToken) => GetEventsMarkedWithIEventInterface(ctx, stoppingToken))
             .Where(static symbol => symbol is not null);
 
-        // Combine all derived types into a single list
-        var derivedTypes = declarations.Collect();
+        // 👇 Runs for every _new_ declarations value returned by the syntax provider
+        //    (* as long as declarations is value equatable)
+        var allEventsDeclarations = declarations.Collect();
 
-        // Generate the source code
-        context.RegisterSourceOutput(derivedTypes, GenerateSource!);
+        // 👇 Runs for every _new_ declarations value returned by the syntax provider
+        //    (* as long as declarations is value equatable)
+        context.RegisterSourceOutput(allEventsDeclarations, GenerateSource!);
     }
 
-    private static bool IsCandidateForGeneration(SyntaxNode syntaxNode)
+
+    /// <summary>
+    /// This method should be as fast as possible and as selective as possible, as usual, "Trade-off" ¯\_(ツ)_/¯ 
+    /// </summary>
+    /// <param name="syntaxNode"></param>
+    /// <returns></returns>
+    private static bool IsCandidateForGeneratingJsonAttributes(SyntaxNode syntaxNode)
     {
-        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) return false;
-        
-        var declarationSyntax =  (syntaxNode as TypeDeclarationSyntax)!;
+        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax)
+            return false;
 
-        var x = declarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString().StartsWith("IEvent<")) ?? false;
-        return x;
+        var baseListTypes = (syntaxNode as TypeDeclarationSyntax)!.BaseList?.Types.ToImmutableArray() ?? [];
+
+        var iEventSpan = "IEvent<".AsSpan();
+
+        foreach (var type in baseListTypes)
+        {
+            if (type.GetText().ToString().AsSpan().StartsWith(iEventSpan))
+                return true;
+        }
+
+        return false;
     }
 
-    private static INamedTypeSymbol? GetRecordDeclarationNamedSymbol(GeneratorSyntaxContext context)
+    /// <summary>
+    /// The key is to extract all the details you need from the SyntaxNode and SemanticModel in the syntax provider transform,
+    /// and store these in a data model that is equatable so that caching works correctly.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private static InterfaceWithEvents? GetEventsMarkedWithIEventInterface(GeneratorSyntaxContext context, CancellationToken cancellationToken = default)
     {
         if (context.SemanticModel.GetDeclaredSymbol(context.Node) is not INamedTypeSymbol symbol)
             return null;
 
-        return symbol.Interfaces.Any(i => i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"))
-            ? symbol
-            : null;
+        var @interface = symbol.Interfaces.FirstOrDefault(i =>
+            i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"));
+
+        if (@interface is null)
+            return null;
+        
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var interfaceName = @interface.Name;
+        var interfaceNamespace = @interface.ContainingNamespace.ToDisplayString();
+        var name = symbol.Name;
+        var @namespace = symbol.ContainingNamespace.ToDisplayString();
+
+        return new InterfaceWithEvents(name, @namespace, interfaceName, interfaceNamespace);
     }
 
-    private static void GenerateSource(SourceProductionContext context, ImmutableArray<INamedTypeSymbol> derivedTypes)
+    private static void GenerateSource(SourceProductionContext context, ImmutableArray<InterfaceWithEvents?> events)
     {
-        var eventInterface = derivedTypes.First().Interfaces
-            .First(i => i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"));
+        var nonNullEventTypes = events.Where(d => d.HasValue).Select(d => d!.Value).ToImmutableArray();
 
-        var eventNamespace = eventInterface.ContainingNamespace.ToDisplayString();
+        var eventInterface = nonNullEventTypes.Select(e => new { e.InterfaceName, e.InterfaceNamespace }).First();
 
-        var derivedTypesNamespaces = derivedTypes
-            .Select(t => $"using {t.ContainingNamespace.ToDisplayString()};")
-            .Where(ns => ns != $"using {eventNamespace};")
+        var allEventsNamespaces = nonNullEventTypes
+            .Select(t => $"using {t.Namespace};")
+            .Where(ns => ns != $"using {eventInterface.InterfaceNamespace};")
             .Distinct();
 
         var sb = new StringBuilder();
@@ -67,24 +100,99 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         sb.AppendLine("// <auto-generated/>");
         sb.AppendLine();
         sb.AppendLine("using System.Text.Json.Serialization;");
-        foreach (var ns in derivedTypesNamespaces)
+        foreach (var ns in allEventsNamespaces)
         {
             sb.AppendLine(ns);
         }
 
         sb.AppendLine();
-        sb.AppendLine($"namespace {eventNamespace};");
+        sb.AppendLine($"namespace {eventInterface.InterfaceNamespace};");
         sb.AppendLine();
         sb.AppendLine("[JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]");
 
-        foreach (var derivedType in derivedTypes.Distinct(SymbolEqualityComparer.Default))
+        foreach (var eventType in nonNullEventTypes)
         {
-            sb.AppendLine($"[JsonDerivedType(typeof({derivedType!.Name}), nameof({derivedType.Name}))]");
+            sb.AppendLine($"[JsonDerivedType(typeof({eventType.Name}), nameof({eventType.Name}))]");
         }
 
-        sb.Append($"public partial interface {eventInterface.Name};");
+        sb.Append($"public partial interface {eventInterface.InterfaceName};");
         sb.AppendLine();
 
         context.AddSource("EventsJsonAttributes.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
     }
 }
+
+internal readonly record struct InterfaceWithEvents
+{
+    public readonly string InterfaceName;
+    public readonly string InterfaceNamespace;
+    public readonly string Name;
+    public readonly string Namespace;
+
+    internal InterfaceWithEvents(string name, string @namespace, string interfaceName, string interfaceNamespace)
+    {
+        Name = name;
+        Namespace = @namespace;
+
+        InterfaceName = interfaceName;
+        InterfaceNamespace = interfaceNamespace;
+    }
+}
+
+
+/*
+https://andrewlock.net/creating-a-source-generator-part-9-avoiding-performance-pitfalls-in-incremental-generators/
+         ██████████████    ██  ██  ██  ██  ████      ██  ████        ████    ██  ██████  ██████      ██████████████
+   ██          ██  ██  ████  ████  ██████    ████████  ██  ████  ████  ██  ████  ██  ██████    ██          ██
+   ██  ██████  ██      ████  ██    ████    ██████    ██  ██  ██  ██████  ██    ██        ██    ██  ██████  ██
+   ██  ██████  ██  ██████  ██████████  ██    ██    ██████  ██    ████████████████████████  ██  ██  ██████  ██
+   ██  ██████  ██  ██  ██  ████████████      ██    ██████████              ██  ██  ██  ██      ██  ██████  ██
+   ██          ██        ██  ████    ██        ██  ██      ██████        ████████  ██  ██      ██          ██
+   ██████████████  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██  ██████████████
+                   ██  ████    ████  ████████    ████      ████  ██                ██████  ██
+     ██  ████████  ██  ██████████      ████    ██  ████████████████    ██████  ██  ██████  ██████  ████  ██
+     ████    ██  ████  ██  ████████  ██        ████████    ████████████████████████  ████  ██████  ██████
+   ██  ████    ██    ██  ██████  ██      ████████████  ██        ████  ██  ████    ██    ██  ████  ██  ██
+     ██    ████  ██  ████    ██    ████████████            ██  ██  ██  ██      ██████████    ██  ██  ██  ████
+     ██    ██  ██      ██  ████            ██████  ██████      ██  ██  ██  ██  ██████  ████████    ████
+   ██████  ████  ████  ████    ████  ████  ██  ██    ██  ████████  ██    ████  ████  ████    ████    ██    ██
+     ████████  ██    ██████████████  ████  ████        ██        ████  ██  ████████████  ████████████      ██
+       ██    ██  ██████        ██  ████  ████      ██  ████    ██      ████  ██      ██████  ████    ██████
+     ██    ██  ████  ████  ████        ██      ██        ██      ████████  ██          ██    ██  ████      ██
+     ██    ██    ██████████            ██  ████  ██████  ██  ████  ████████████  ████  ██    ████      ██
+   ████  ██████████  ██  ████  ██      ████████          ██  ██  ██████    ████    ██    ████      ██  ██  ██
+                 ██████████████    ████  ████████  ██      ██  ████  ██    ██      ████      ████      ██  ██
+   ██  ████    ████        ██████  ████  ██  ██████  ████    ████    ██████  ████  ██  ████████    ██  ██████
+     ████    ██      ██  ██          ██  ██  ██    ████  ██    ██    ████    ██  ████████████████    ████  ██
+         ████████    ██    ████  ██    ████      ██  ████  ██  ████  ████      ██  ██      ████████████████
+   ████  ██████        ██    ████  ██████      ████            ██  ████  ██              ████  ██    ██  ██
+         ████████████  ██  ██      ██████████████████████████  ██  ████    ██  ██  ██  ████████████████
+   ████    ██      ██    ██      ██  ██  ██    ██████      ██  ██    ██        ██  ██████  ██      ██      ██
+     ████  ██  ██  ██  ██        ████        ██  ████  ██  ████      ██    ██████  ██      ██  ██  ██████  ██
+   ██    ████      ████████  ██████            ██  ██      ████  ████████      ██      ██  ██      ████  ████
+   ████    ████████████████      ██████  ██    ██████████████      ██████  ██    ██    ██  ██████████  ██  ██
+           ████  ██  ██    ████          ████  ██    ██  ██    ████  ████  ████    ██████    ██    ██  ██
+   ██  ██    ████████      ██      ██████  ██    ██  ██  ████  ████████      ██    ██  ██████  ██  ██████  ██
+     ████  ████    ██  ██  ████  ██        ██  ██        ██  ██      ████          ██          ████    ██
+   ██    ████████      ██  ██████  ██    ████  ██    ████            ██  ████      ██    ██            ██████
+   ████    ██        ██████  ██          ██                ██  ████  ██████████████    ██  ██████  ██  ██
+     ████████  ████  ██  ██  ██    ██    ██        ██    ██  ██████  ████        ██  ██              ██
+         ██      ████    ██████████  ██      ██      ██  ██  ██  ██████  ██    ██      ████████  ██  ██    ██
+   ██████  ██  ██████████    ██  ████    ████████    ██    ██████  ████    ██  ██  ████████          ██    ██
+       ██  ██    ████  ██████████  ████      ████      ██  ██        ██  ████████████  ██    ██  ████████████
+   ████  ██    ██          ██████████  ████    ████    ██  ██    ██  ██  ██  ████              ██  ██      ██
+   ██    ██████        ██    ██  ██  ██  ██  ██████████    ██  ██    ████      ██      ████  ██  ████  ██████
+     ██  ████  ██      ████  ██      ██  ██    ████    ██████  ████████    ██    ██  ██    ████    ██    ██
+       ████████  ██  ██████████      ██████████          ██    ██████████    ██  ██    ██████████████████
+   ████  ████████████████████  ██  ██    ██  ██████      ██    ████████    ████      ██        ██  ██    ████
+     ████        ██  ████    ██  ██    ██  ██  ██    ██    ██    ██  ████              ██      ██  ██  ██████
+         ██    ████  ██  ██      ██    ████  ████  ██████████████    ██  ████████        ████████████  ██  ██
+                   ██  ██  ██████  ██  ██    ████████      ██    ██  ██  ████  ██    ████  ██      ████
+   ██████████████      ██  ██    ████    ██  ████████  ██  ████  ██  ██    ██      ██      ██  ██  ██
+   ██          ██  ██      ██████  ████    ████    ██      ████  ██████████  ██      ████  ██      ████    ██
+   ██  ██████  ██  ████  ████  ██████      ██    ████████████  ██  ██  ██  ██  ██  ████  ██████████████
+   ██  ██████  ██  ██      ████  ██████  ██  ██  ██████    ████    ████        ██████████  ██    ██    ██████
+   ██  ██████  ██      ██        ██  ██          ██████      ██          ██    ██  ██    ██    ████████    ██
+   ██          ██  ████  ██████    ████  ██████  ██████  ██              ████  ██      ██████████    ████  ██
+   ██████████████      ████████████████      ██    ██  ██      ██████    ██████████        ██████
+ */
