@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using CustomerManagementSystem.Domain;
-using CustomerManagementSystem.Domain.Customers;
 using CustomerManagementSystem.Domain.Fx;
 using Microsoft.Azure.Cosmos;
 
@@ -107,7 +106,7 @@ internal sealed class CosmosEventStore : IEventStore
         }
         catch
         {
-            throw new AggregateNotFoundException(streamId);
+            throw new InvalidOperationException("No stream found");
         }
     }
 }
