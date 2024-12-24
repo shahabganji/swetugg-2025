@@ -45,18 +45,18 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
     private static (INamedTypeSymbol? Event, INamedTypeSymbol Aggregate) GetAggregatesWithEvent(
         GeneratorSyntaxContext context)
     {
-// Get the symbol for the record declaration
+        // Get the symbol for the record declaration
         var eventNode = (RecordDeclarationSyntax)context.Node;
         var eventNodeSymbol = context.SemanticModel.GetDeclaredSymbol(eventNode) as INamedTypeSymbol;
 
         if (eventNodeSymbol is null)
             return (null!, null!);
 
-// Check if the base type is generic and is of type `Event`
+        // Check if the base type is generic and is of type `Event`
         if (!eventNodeSymbol.Interfaces.Any(i => i.Name == "IEvent"))
             return (null!, null!);
 
-        
+
         var iEventInterface = eventNodeSymbol.Interfaces.First(i => i.Name == "IEvent");
         var aggregateType = iEventInterface.TypeArguments[0] as INamedTypeSymbol;
 

@@ -52,7 +52,7 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
     private void AnalyzeThrowStatements(OperationAnalysisContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
-        
+
         if (context.Operation is not IThrowOperation || context.Operation.Syntax is not ThrowStatementSyntax)
             return;
 
@@ -65,14 +65,14 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
 
         if (containingMethodSymbol?.ReturnType is not INamedTypeSymbol returnTypeSymbol)
             return;
-        
+
         context.CancellationToken.ThrowIfCancellationRequested();
 
         var taskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
         var isTask = returnTypeSymbol.OriginalDefinition.Equals(taskSymbol, SymbolEqualityComparer.Default);
-        
+
         var typeArguments = returnTypeSymbol.TypeArguments.FirstOrDefault();
-        
+
         var expectedReturnType = isTask ? typeArguments : returnTypeSymbol;
         var maybeTypeSymbol = context.Compilation.GetTypeByMetadataName("CustomerManagementSystem.Domain.Fx.Maybe`1");
 

@@ -199,7 +199,7 @@ public class AggregatePartialMethodGeneratorTests
 
                                                         """;
 
-        
+
         // Create an instance of the source generator.
         var generator = new AggregatePartialMethodGenerator();
 

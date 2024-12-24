@@ -31,7 +31,7 @@ public class MaybeSemanticAnalyzerTests
         // Assert
         await analyserTest.RunAsync();
     }
-    
+
     [Fact]
     public async Task Detects_diagnostic_for_throwing_error_when_a_method_returns_Task_Maybe_of_T()
     {
@@ -56,7 +56,7 @@ public class MaybeSemanticAnalyzerTests
         // Assert
         await analyserTest.RunAsync();
     }
-    
+
 
     [Fact]
     public async Task Detects_diagnostic_for_throwing_error_on_a_nested_level_when_a_method_returns_Maybe_of_T()

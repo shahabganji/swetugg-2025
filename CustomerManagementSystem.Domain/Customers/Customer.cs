@@ -9,12 +9,12 @@ public sealed partial class Customer : IAmAggregateRoot
     public string FullName { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public DateTime DateOfBirth { get; private set; }
-    
+
     public void Apply(IEvent @event)
     {
         ((dynamic)this).Apply((dynamic)@event);
     }
-    
+
     private partial void Apply(CustomerRegistered @event)
     {
         CustomerId = @event.CustomerId;

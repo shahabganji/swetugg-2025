@@ -9,7 +9,7 @@ public static class Maybe
 
 public readonly struct Maybe<T> : IEquatable<None>, IEquatable<Maybe<T>>
 {
-    
+
     private readonly T _value;
 
     public T UnwrappedValue => this.IsNone

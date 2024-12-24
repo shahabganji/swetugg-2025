@@ -21,7 +21,8 @@ internal class CosmosSystemTextJsonSerializer : CosmosLinqSerializer
     {
         _jsonSerializerOptions = jsonSerializerOptions ?? new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true, WriteIndented = true
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true
         };
     }
 

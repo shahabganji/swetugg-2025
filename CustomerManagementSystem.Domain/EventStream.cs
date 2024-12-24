@@ -10,7 +10,7 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
         var storedEvent = new StoredEvent(streamId, DateTime.UtcNow, @event);
         store.Append(storedEvent);
     }
-    
+
     public async Task<Maybe<TAggregate>> GetEntity()
     {
         var events = await store.GetEvents(streamId);
@@ -19,8 +19,8 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
         {
             throw new InvalidOperationException("No events found");
         }
-        
-        TAggregate aggregate = new ();
+
+        TAggregate aggregate = new();
         foreach (var evt in events)
         {
             aggregate.Apply(evt.EventData);
