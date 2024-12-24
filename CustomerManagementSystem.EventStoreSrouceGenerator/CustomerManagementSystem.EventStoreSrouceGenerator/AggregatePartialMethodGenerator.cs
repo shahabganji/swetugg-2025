@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -9,119 +7,78 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CustomerManagementSystem.EventStoreSrouceGenerator;
 
-/// <summary>
-/// A sample source generator that creates a custom report based on class properties. The target class should be annotated with the 'Generators.ReportAttribute' attribute.
-/// When using the source code as a baseline, an incremental source generator is preferable because it reduces the performance overhead.
-/// </summary>
 [Generator]
 public class AggregatePartialMethodGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Select classes that might be derived from `Event`.
         var declarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsCandidateForGeneration(s),
-                transform: static (ctx, _) => GetAggregatesWithEvent(ctx))
-            .Where(static symbol => symbol is not (null, null));
+                predicate: static (s, _) => IsCandidateForGeneratingPartialMethods(s),
+                transform: static (ctx, _) => GetEventInfoWithAggregateInfo(ctx))
+            .Where(static symbol => symbol is not null);
 
-        // Generate the source code
         context.RegisterSourceOutput(declarations.Collect(), GenerateSource!);
     }
 
-    private static bool IsCandidateForGeneration(SyntaxNode syntaxNode)
+    private static bool IsCandidateForGeneratingPartialMethods(SyntaxNode syntaxNode)
     {
-        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) return false;
+        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) 
+            return false;
 
-        var declarationSyntax =  (syntaxNode as TypeDeclarationSyntax)!;
-        
-        var x = declarationSyntax.BaseList?.Types.Any(t =>
+        var baseListTypes = (syntaxNode as TypeDeclarationSyntax)!.BaseList?.Types ?? [];
+
+        foreach (var type in baseListTypes)
         {
-            var typeSyntax = t.Type as GenericNameSyntax;
-            return typeSyntax is { Identifier.Text: "IEvent", TypeArgumentList.Arguments.Count: 1 };
-        }) ?? false;
+            if (type.Type is GenericNameSyntax { Identifier.Text: "IEvent", TypeArgumentList.Arguments.Count: 1 })
+                return true;
+        }
 
-        return x;
+        return false;
     }
 
-    private static (INamedTypeSymbol? Event, INamedTypeSymbol Aggregate) GetAggregatesWithEvent(
-        GeneratorSyntaxContext context)
+    private static EventInfo? GetEventInfoWithAggregateInfo(GeneratorSyntaxContext context)
     {
         if (context.SemanticModel.GetDeclaredSymbol(context.Node) is not INamedTypeSymbol eventNodeSymbol)
-            return (null!, null!);
+            return null;
 
-        // Check if the base type is generic and is of type `Event`
         if (!eventNodeSymbol.Interfaces.Any(i => i.Name == "IEvent"))
-            return (null!, null!);
+            return null;
 
+        var aggregateType = eventNodeSymbol.Interfaces.First(i => i.Name == "IEvent").TypeArguments[0];
 
-        var iEventInterface = eventNodeSymbol.Interfaces.First(i => i.Name == "IEvent");
-        var aggregateType = iEventInterface.TypeArguments[0] as INamedTypeSymbol;
+        var eventInfo = new EventInfo(
+            eventNodeSymbol.Name, eventNodeSymbol.ContainingNamespace.ToDisplayString(),
+            aggregateType.Name, aggregateType.ContainingNamespace.ToDisplayString(), aggregateType.IsSealed);
 
-        return (eventNodeSymbol, aggregateType!);
+        return eventInfo;
     }
 
-    private class AggregateInfo(string name, string @namespace, bool isSealed)
+    private static void GenerateSource(SourceProductionContext context, ImmutableArray<EventInfo?> eventInfos)
     {
-        public string Name { get; } = name;
-        public string Ns { get; } = @namespace;
+        var nonNullEventInfos = eventInfos
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
+            .ToImmutableList();
 
-        public bool IsSealed { get; } = isSealed;
-
-        public IReadOnlyCollection<INamedTypeSymbol> Events { get; set; } = [];
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is AggregateInfo other)
-            {
-                return Name == other.Name
-                       && Ns == other.Ns
-                       && IsSealed == other.IsSealed;
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = 17;
-                hash = hash * 23 + Name.GetHashCode();
-                hash = hash * 23 + Ns.GetHashCode();
-                hash = hash * 23 + IsSealed.GetHashCode();
-                return hash;
-            }
-        }
-    }
-
-    private static void GenerateSource(SourceProductionContext context,
-        ImmutableArray<(INamedTypeSymbol Event, INamedTypeSymbol Aggregate)> derivedTypes)
-    {
-        var aggregates = derivedTypes
-            .Select(t =>
-                new AggregateInfo(
-                    t.Aggregate.Name, t.Aggregate.ContainingNamespace.ToDisplayString(), t.Aggregate.IsSealed))
+        var aggregates = nonNullEventInfos
+            .Select(ei => new AggregateInfo(ei.AggregateName, ei.AggregateNamespace, ei.IsAggregateSealed))
             .Distinct()
             .ToImmutableList();
 
         foreach (var aggregate in aggregates)
         {
-            var events = derivedTypes
-                .Where(d => d.Aggregate.Name == aggregate.Name &&
-                            d.Aggregate.ContainingNamespace.ToDisplayString() == aggregate.Ns)
-                .Select(d => d.Event)
+            var events = nonNullEventInfos
+                .Where(ei => ei.AggregateName == aggregate.Name &&
+                             ei.AggregateNamespace == aggregate.Ns)
+                .Select(ei => new { ei.Name, ei.Ns })
+                .OrderBy(ei => ei.Name)
                 .ToImmutableList();
 
-            aggregate.Events = events;
-        }
-
-        foreach (var aggregate in aggregates)
-        {
             var sb = new StringBuilder();
 
-            var eventsNamespaces = aggregate.Events
-                .Select(e => e.ContainingNamespace.ToDisplayString())
+            var eventsNamespaces = events
+                .Select(e => e.Ns)
                 .Where(e => e != aggregate.Ns)
                 .Distinct();
 
@@ -140,7 +97,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
             sb.AppendLine($"public{isSealed}partial class {aggregate.Name}");
             sb.AppendLine("{");
 
-            foreach (var @event in aggregate.Events.OrderBy(e => e.Name))
+            foreach (var @event in events)
             {
                 sb.AppendLine($"    private partial void Apply({@event.Name} @event);");
             }
@@ -150,5 +107,31 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
             context.AddSource($"{aggregate.Name}Aggregate.PartialMethods.g.cs",
                 SourceText.From(sb.ToString(), Encoding.UTF8));
         }
+    }
+
+    private readonly record struct EventInfo
+    {
+        public string Name { get; }
+        public string Ns { get; }
+        public string AggregateName { get; }
+        public string AggregateNamespace { get; }
+        public bool IsAggregateSealed { get; }
+
+        internal EventInfo(string name, string ns,
+            string aggregateName, string aggregateNamespace, bool isAggregateSealed)
+        {
+            Name = name;
+            Ns = ns;
+            AggregateName = aggregateName;
+            AggregateNamespace = aggregateNamespace;
+            IsAggregateSealed = isAggregateSealed;
+        }
+    }
+
+    private readonly record struct AggregateInfo(string Name, string Ns, bool IsSealed)
+    {
+        public readonly string Name = Name;
+        public readonly string Ns = Ns;
+        public readonly bool IsSealed = IsSealed;
     }
 }
