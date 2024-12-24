@@ -50,7 +50,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         // Check if it inherits from `Event`
         var baseType = symbol.BaseType;
 
-        return baseType?.ToDisplayString().StartsWith("CustomerManagementSystem.Api.Shared.Event<") == true
+        return baseType?.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.Event<") == true
             ? symbol
             : null;
     }
@@ -63,11 +63,11 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
             return;
         }
 
-        var namespaceName = baseType.ContainingNamespace.ToDisplayString();
+        var eventNamespace = baseType.ContainingNamespace.ToDisplayString();
 
         var derivedTypesNamespaces = derivedTypes
             .Select(t => $"using {t.ContainingNamespace.ToDisplayString()};")
-            .Where(ns => ns.Contains(namespaceName) == false)
+            .Where(ns => ns != $"using {eventNamespace};")
             .Distinct();
 
         var sb = new StringBuilder();
@@ -81,7 +81,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         }
 
         sb.AppendLine();
-        sb.AppendLine($"namespace {namespaceName};");
+        sb.AppendLine($"namespace {eventNamespace};");
         sb.AppendLine();
         sb.AppendLine("[JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]");
 
@@ -95,6 +95,6 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         sb.Append(" }");
         sb.AppendLine();
 
-        context.AddSource("EventJsonAttributes.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+        context.AddSource("EventsJsonAttributes.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
     }
 }

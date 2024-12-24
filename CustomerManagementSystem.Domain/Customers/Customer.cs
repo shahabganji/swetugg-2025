@@ -1,9 +1,8 @@
 using System.Text.Json.Serialization;
-using CustomerManagementSystem.Api.Customers.Register;
-using CustomerManagementSystem.Api.Customers.UpdateContactsInfo;
-using CustomerManagementSystem.Api.Shared;
+using CustomerManagementSystem.Domain.Customers.Register;
+using CustomerManagementSystem.Domain.Customers.UpdateContactsInfo;
 
-namespace CustomerManagementSystem.Api.Customers;
+namespace CustomerManagementSystem.Domain.Customers;
 
 public sealed partial class Customer : IAmAggregateRoot
 {

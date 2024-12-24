@@ -54,8 +54,7 @@ public class MaybeCodeFixProvider : CodeFixProvider
     private static async Task<Document> ReplaceThrowWithReturnStatement(
         Document document, CSharpSyntaxNode throwSyntaxNode, CancellationToken cancellationToken)
     {
-        var returnStatement = ReturnStatement(MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
+        var returnStatement = ReturnStatement(
             MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 MemberAccessExpression(
@@ -65,14 +64,13 @@ public class MaybeCodeFixProvider : CodeFixProvider
                         MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             IdentifierName("CustomerManagementSystem"),
-                            IdentifierName("Api")),
-                        IdentifierName("Shared")),
-                    IdentifierName("Fx")),
-                IdentifierName("Maybe")),
-            IdentifierName("None")
-                .WithLeadingTrivia(throwSyntaxNode.GetLeadingTrivia())
-                .WithTrailingTrivia(throwSyntaxNode.GetTrailingTrivia())
-                .NormalizeWhitespace()));
+                            IdentifierName("Domain")),
+                        IdentifierName("Fx")),
+                    IdentifierName("Maybe")),
+                IdentifierName("None")
+                    .WithLeadingTrivia(throwSyntaxNode.GetLeadingTrivia())
+                    .WithTrailingTrivia(throwSyntaxNode.GetTrailingTrivia())
+                    .NormalizeWhitespace()));
 
         var root = await document.GetSyntaxRootAsync(cancellationToken);
         var newRoot = root?.ReplaceNode(throwSyntaxNode, returnStatement);

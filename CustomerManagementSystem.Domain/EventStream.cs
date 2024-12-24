@@ -1,6 +1,6 @@
-using CustomerManagementSystem.Api.Shared.Fx;
+using CustomerManagementSystem.Domain.Fx;
 
-namespace CustomerManagementSystem.Api.Shared;
+namespace CustomerManagementSystem.Domain;
 
 internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
     where TAggregate : IAmAggregateRoot, new()

@@ -5,12 +5,12 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "CustomerId": "8b311274-10c1-4a41-bbac-e6477e16c800",
-  "FullName": "Bahar Ganji",
-  "Email": "bahar@tech.com",
-  "DateOfBirth": "2010-09-07T00:00:00"
+  "CustomerId": "8b311274-10c1-4a41-bbac-e6477e16c801",
+  "FullName": "Aliabbas Ganji",
+  "Email": "aliabbas@tech.com",
+  "DateOfBirth": "2014-03-31T00:00:00"
 }
 
 ###
 
-GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c800
+GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c801

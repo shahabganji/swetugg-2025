@@ -9,7 +9,7 @@ public class JsonAttributesEventGeneratorTests
 {
     //lang=csharp
     private const string SourceTextWithFileScopedNamespace = """
-                                                             namespace CustomerManagementSystem.Api.Shared;
+                                                             namespace CustomerManagementSystem.Domain;
                                                              
                                                              public class Customer{}
                                                              
@@ -43,7 +43,7 @@ public class JsonAttributesEventGeneratorTests
 
                                                       using System.Text.Json.Serialization;
 
-                                                      namespace CustomerManagementSystem.Api.Shared;
+                                                      namespace CustomerManagementSystem.Domain;
 
                                                       [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
                                                       [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
@@ -72,7 +72,7 @@ public class JsonAttributesEventGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventsJsonAttributes.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
@@ -81,7 +81,7 @@ public class JsonAttributesEventGeneratorTests
 
     //lang=csharp
     private const string SourceTextWithNormalNamespace = """
-                                                         namespace CustomerManagementSystem.Api.Shared;
+                                                         namespace CustomerManagementSystem.Domain;
                                                          {
                                                              public class Customer{}
                                                              
@@ -131,7 +131,7 @@ public class JsonAttributesEventGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventsJsonAttributes.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(ExpectedGeneratedClassText, generatedFileSyntax.GetText().ToString(),
@@ -140,7 +140,7 @@ public class JsonAttributesEventGeneratorTests
 
     //lang=csharp
     private const string SourceTextWithDifferentNamespace = """
-                                                            namespace CustomerManagementSystem.Api.Shared;
+                                                            namespace CustomerManagementSystem.Domain;
                                                             {
                                                                 public class Customer{}
                                                                 
@@ -162,9 +162,9 @@ public class JsonAttributesEventGeneratorTests
                                                                 }
                                                             }
 
-                                                            namespace EventsNamespaces;
+                                                            namespace EventsNamespaces
                                                             {
-                                                                using CustomerManagementSystem.Api.Shared;
+                                                                using CustomerManagementSystem.Domain;
                                                                 
                                                                 public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
                                                                     : Event<Customer>
@@ -174,6 +174,43 @@ public class JsonAttributesEventGeneratorTests
                                                             }
                                                             """;
 
+        //lang=csharp
+    private const string SourceTextWithSubNamespace = """
+                                                            namespace CustomerManagementSystem.Domain;
+                                                            {
+                                                                public class Customer{}
+                                                                
+                                                                public abstract partial record Event
+                                                                {
+                                                                    public abstract Guid StreamId { get; }
+                                                                }
+                                                            
+                                                                public abstract partial record Event<TA>
+                                                                {
+                                                                    public abstract Guid StreamId { get; }
+                                                                    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+                                                                
+                                                                    [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+                                                                    [JsonPropertyName("id")] public string Id => CreatedAtUtc.ToString("O");
+                                                                
+                                                                    protected Event() { }
+                                                                    
+                                                                }
+                                                            }
+
+                                                            namespace CustomerManagementSystem.Domain.EventsNamespaces
+                                                            {
+                                                                using CustomerManagementSystem.Domain;
+                                                                
+                                                                public sealed record CustomerRegistered (Guid CustomerId, string FullName, string Email, DateTime DateOfBirth) 
+                                                                    : Event<Customer>
+                                                                {
+                                                                    public override Guid StreamId => CustomerId;
+                                                                }
+                                                            }
+                                                            """;
+
+    
 
     //lang=csharp
     private const string ExpectedWhenHavingDifferentNamespaces = """
@@ -182,7 +219,20 @@ public class JsonAttributesEventGeneratorTests
                                                                  using System.Text.Json.Serialization;
                                                                  using EventsNamespaces;
 
-                                                                 namespace CustomerManagementSystem.Api.Shared;
+                                                                 namespace CustomerManagementSystem.Domain;
+
+                                                                 [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
+                                                                 [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
+                                                                 public abstract partial record Event { }
+
+                                                                 """;//lang=csharp
+    private const string ExpectedWhenHavingSubtNamespaces = """
+                                                                 // <auto-generated/>
+
+                                                                 using System.Text.Json.Serialization;
+                                                                 using CustomerManagementSystem.Domain.EventsNamespaces;
+
+                                                                 namespace CustomerManagementSystem.Domain;
 
                                                                  [JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
                                                                  [JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
@@ -212,10 +262,39 @@ public class JsonAttributesEventGeneratorTests
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         // All generated files can be found in 'RunResults.GeneratedTrees'.
-        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventJsonAttributes.g.cs"));
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventsJsonAttributes.g.cs"));
 
         // Complex generators should be tested using text comparison.
         Assert.Equal(ExpectedWhenHavingDifferentNamespaces, generatedFileSyntax.GetText().ToString(),
             ignoreLineEndingDifferences: true);
     }
+    
+    [Fact]
+    public void GeneratePartialEventWithAttributes_When_SubNamespaces()
+    {
+        // Create an instance of the source generator.
+        var generator = new JsonAttributesEventGenerator();
+
+        // Source generators should be tested using 'GeneratorDriver'.
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        // We need to create a compilation with the required source code.
+        var compilation = CSharpCompilation.Create(nameof(JsonAttributesEventGenerator),
+            [CSharpSyntaxTree.ParseText(SourceTextWithSubNamespace)],
+            [
+                // To support 'System.Attribute' inheritance, add reference to 'System.Private.CoreLib'.
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            ]);
+
+        // Run generators and retrieve all results.
+        var runResult = driver.RunGenerators(compilation).GetRunResult();
+
+        // All generated files can be found in 'RunResults.GeneratedTrees'.
+        var generatedFileSyntax = runResult.GeneratedTrees.Single(t => t.FilePath.EndsWith("EventsJsonAttributes.g.cs"));
+
+        // Complex generators should be tested using text comparison.
+        Assert.Equal(ExpectedWhenHavingSubtNamespaces, generatedFileSyntax.GetText().ToString(),
+            ignoreLineEndingDifferences: true);
+    }
+    
 }

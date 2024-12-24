@@ -1,9 +1,8 @@
-using System.Reflection.Metadata;
-using CustomerManagementSystem.Api.Customers;
-using CustomerManagementSystem.Api.Customers.GetCustomer;
-using CustomerManagementSystem.Api.Customers.Register;
+using CustomerManagementSystem.Domain.Customers.GetCustomer;
+using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.Api.Shared;
 using CustomerManagementSystem.Api.Shared.Serializers;
+using CustomerManagementSystem.Domain;
 using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<GetCustomerHandler>();
-builder.Services.AddScoped<RegisterCustomerHandler>();
+builder.Services.AddCommandHandlers();
 builder.Services.AddScoped<IEventStore>(_ =>
 {
     var connectionString = builder.Configuration.GetConnectionString("CosmosDb");

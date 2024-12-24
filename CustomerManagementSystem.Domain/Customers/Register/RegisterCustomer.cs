@@ -1,6 +1,4 @@
-using CustomerManagementSystem.Api.Shared;
-
-namespace CustomerManagementSystem.Api.Customers.Register;
+namespace CustomerManagementSystem.Domain.Customers.Register;
 
 public sealed record RegisterCustomer(Guid CustomerId, string FullName, string Email, DateTime DateOfBirth);
 

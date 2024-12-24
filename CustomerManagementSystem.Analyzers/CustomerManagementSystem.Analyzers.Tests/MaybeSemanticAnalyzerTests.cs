@@ -14,7 +14,7 @@ public class MaybeSemanticAnalyzerTests
         // Arrange
         const string source = """
                               using System;
-                              using CustomerManagementSystem.Api.Shared.Fx;
+                              using CustomerManagementSystem.Domain.Fx;
 
                               public class Program
                               {
@@ -39,7 +39,7 @@ public class MaybeSemanticAnalyzerTests
         const string source = """
                               using System;
                               using System.Threading.Tasks;
-                              using CustomerManagementSystem.Api.Shared.Fx;
+                              using CustomerManagementSystem.Domain.Fx;
 
                               public class Program
                               {
@@ -64,7 +64,7 @@ public class MaybeSemanticAnalyzerTests
         // Arrange
         const string source = """
                               using System;
-                              using CustomerManagementSystem.Api.Shared.Fx;
+                              using CustomerManagementSystem.Domain.Fx;
 
                               public class Program
                               {
@@ -92,7 +92,7 @@ public class MaybeSemanticAnalyzerTests
         // Arrange
         const string source = """
                               using System;
-                              using CustomerManagementSystem.Api.Shared.Fx;
+                              using CustomerManagementSystem.Domain.Fx;
 
                               public class Program
                               {

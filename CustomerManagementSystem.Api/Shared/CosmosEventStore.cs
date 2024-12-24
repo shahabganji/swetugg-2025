@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
-using CustomerManagementSystem.Api.Customers;
-using CustomerManagementSystem.Api.Shared.Fx;
+using CustomerManagementSystem.Domain;
+using CustomerManagementSystem.Domain.Customers;
+using CustomerManagementSystem.Domain.Fx;
 using Microsoft.Azure.Cosmos;
 
 

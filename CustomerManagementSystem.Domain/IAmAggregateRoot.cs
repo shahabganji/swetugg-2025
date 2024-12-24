@@ -1,4 +1,4 @@
-namespace CustomerManagementSystem.Api.Shared;
+namespace CustomerManagementSystem.Domain;
 
 public interface IAmAggregateRoot
 {

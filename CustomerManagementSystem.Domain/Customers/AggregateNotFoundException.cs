@@ -1,4 +1,4 @@
-namespace CustomerManagementSystem.Api.Customers;
+namespace CustomerManagementSystem.Domain.Customers;
 
 public class AggregateNotFoundException : Exception
 {

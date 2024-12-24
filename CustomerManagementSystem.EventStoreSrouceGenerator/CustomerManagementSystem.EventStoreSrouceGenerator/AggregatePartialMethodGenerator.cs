@@ -50,7 +50,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
         var symbol = context.SemanticModel.GetDeclaredSymbol(recordDeclaration) as INamedTypeSymbol;
 
         if (symbol is null)
-            return (null, null);
+            return (null!, null!);
 
 // Check if the base type is generic and is of type `Event`
         if (symbol.BaseType is { Name: "Event", TypeArguments.Length: 1 } baseTypeSymbol &&
@@ -60,7 +60,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
             return (symbol, genericArgumentSymbol);
         }
 
-        return (null, null);
+        return (null!, null!);
     }
 
     private class AggregateInfo(string name, string @namespace, bool isSealed)

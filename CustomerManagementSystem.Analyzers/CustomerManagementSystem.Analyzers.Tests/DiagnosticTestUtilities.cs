@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using System.IO;
-using CustomerManagementSystem.Api.Shared.Fx;
+using CustomerManagementSystem.Domain.Fx;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;

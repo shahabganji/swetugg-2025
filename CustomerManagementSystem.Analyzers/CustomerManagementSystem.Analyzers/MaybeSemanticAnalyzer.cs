@@ -74,7 +74,7 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
         var typeArguments = returnTypeSymbol.TypeArguments.FirstOrDefault();
         
         var expectedReturnType = isTask ? typeArguments : returnTypeSymbol;
-        var maybeTypeSymbol = context.Compilation.GetTypeByMetadataName("CustomerManagementSystem.Api.Shared.Fx.Maybe`1");
+        var maybeTypeSymbol = context.Compilation.GetTypeByMetadataName("CustomerManagementSystem.Domain.Fx.Maybe`1");
 
         if (!expectedReturnType!.OriginalDefinition.Equals(maybeTypeSymbol, SymbolEqualityComparer.Default))
             return;

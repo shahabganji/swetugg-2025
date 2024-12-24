@@ -15,7 +15,7 @@ public class MaybeCodeFixProviderTests
     {
         const string source = """
                               using System;
-                              using CustomerManagementSystem.Api.Shared.Fx;
+                              using CustomerManagementSystem.Domain.Fx;
 
                               public class Program
                               {
@@ -28,13 +28,13 @@ public class MaybeCodeFixProviderTests
 
         const string newSource = """
                                  using System;
-                                 using CustomerManagementSystem.Api.Shared.Fx;
+                                 using CustomerManagementSystem.Domain.Fx;
 
                                  public class Program
                                  {
                                      public Maybe<int> GetValue(string number)
                                      {
-                                         return CustomerManagementSystem.Api.Shared.Fx.Maybe.None;
+                                         return CustomerManagementSystem.Domain.Fx.Maybe.None;
                                      }
                                  }
                                  """;

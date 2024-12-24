@@ -1,6 +1,6 @@
-using CustomerManagementSystem.Api.Shared.Fx;
+using CustomerManagementSystem.Domain.Fx;
 
-namespace CustomerManagementSystem.Api.Shared;
+namespace CustomerManagementSystem.Domain;
 
 public interface IEventStore
 {

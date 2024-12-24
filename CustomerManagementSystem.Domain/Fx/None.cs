@@ -1,4 +1,4 @@
-namespace CustomerManagementSystem.Api.Shared.Fx;
+namespace CustomerManagementSystem.Domain.Fx;
 
 public readonly struct None
 {

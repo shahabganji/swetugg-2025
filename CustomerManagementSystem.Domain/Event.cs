@@ -1,4 +1,4 @@
-namespace CustomerManagementSystem.Api.Shared;
+namespace CustomerManagementSystem.Domain;
 
 public abstract partial record Event
 {
