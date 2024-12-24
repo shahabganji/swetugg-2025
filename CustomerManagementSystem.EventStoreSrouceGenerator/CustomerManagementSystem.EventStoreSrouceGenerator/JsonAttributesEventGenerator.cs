@@ -18,7 +18,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
             // .ForAttributeWithMetadataName()// 👈 use the new API
             .CreateSyntaxProvider(
                 // 👇 Runs for _every_ syntax node, on _every_ key press!
-                predicate: static (s, _) => IsCandidateForGeneratingJsonAttributes(s),
+                predicate: static (s, _) => IsSyntaxTargetForCodeGeneration(s),
                 // 👇 Runs for _every_ node selected by the predicate, on _every_ key press!
                 transform: static (ctx, stoppingToken) => GetEventsMarkedWithIEventInterface(ctx, stoppingToken))
             .Where(static symbol => symbol is not null);
@@ -38,18 +38,16 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
     /// </summary>
     /// <param name="syntaxNode"></param>
     /// <returns></returns>
-    private static bool IsCandidateForGeneratingJsonAttributes(SyntaxNode syntaxNode)
+    private static bool IsSyntaxTargetForCodeGeneration(SyntaxNode syntaxNode)
     {
         if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax)
             return false;
 
-        var baseListTypes = (syntaxNode as TypeDeclarationSyntax)!.BaseList?.Types.ToImmutableArray() ?? [];
-
-        var iEventSpan = "IEvent<".AsSpan();
+        var baseListTypes = (syntaxNode as TypeDeclarationSyntax)!.BaseList?.Types ?? [];
 
         foreach (var type in baseListTypes)
         {
-            if (type.GetText().ToString().AsSpan().StartsWith(iEventSpan))
+            if (type.Type is GenericNameSyntax { Identifier.Text: "IEvent", TypeArgumentList.Arguments.Count: 1 })
                 return true;
         }
 
@@ -68,8 +66,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
         if (context.SemanticModel.GetDeclaredSymbol(context.Node) is not INamedTypeSymbol symbol)
             return null;
 
-        var @interface = symbol.Interfaces.FirstOrDefault(i =>
-            i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"));
+        var @interface = symbol.Interfaces.FirstOrDefault(i => i.Name == "IEvent" && i.TypeArguments.Length == 1);
 
         if (@interface is null)
             return null;

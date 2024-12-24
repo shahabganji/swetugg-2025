@@ -14,14 +14,14 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
     {
         var declarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsCandidateForGeneratingPartialMethods(s),
+                predicate: static (s, _) => IsSyntaxTargetForCodeGeneration(s),
                 transform: static (ctx, _) => GetEventInfoWithAggregateInfo(ctx))
             .Where(static symbol => symbol is not null);
 
         context.RegisterSourceOutput(declarations.Collect(), GenerateSource!);
     }
 
-    private static bool IsCandidateForGeneratingPartialMethods(SyntaxNode syntaxNode)
+    private static bool IsSyntaxTargetForCodeGeneration(SyntaxNode syntaxNode)
     {
         if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) 
             return false;
