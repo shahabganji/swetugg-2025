@@ -31,9 +31,11 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
 
     private static bool IsCandidateForGeneration(SyntaxNode syntaxNode)
     {
-        if (syntaxNode is not RecordDeclarationSyntax recordDeclarationSyntax) return false;
+        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) return false;
 
-        var x = recordDeclarationSyntax.BaseList?.Types.Any(t =>
+        var declarationSyntax =  (syntaxNode as TypeDeclarationSyntax)!;
+        
+        var x = declarationSyntax.BaseList?.Types.Any(t =>
         {
             var typeSyntax = t.Type as GenericNameSyntax;
             return typeSyntax is { Identifier.Text: "IEvent", TypeArgumentList.Arguments.Count: 1 };
@@ -45,11 +47,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
     private static (INamedTypeSymbol? Event, INamedTypeSymbol Aggregate) GetAggregatesWithEvent(
         GeneratorSyntaxContext context)
     {
-        // Get the symbol for the record declaration
-        var eventNode = (RecordDeclarationSyntax)context.Node;
-        var eventNodeSymbol = context.SemanticModel.GetDeclaredSymbol(eventNode) as INamedTypeSymbol;
-
-        if (eventNodeSymbol is null)
+        if (context.SemanticModel.GetDeclaredSymbol(context.Node) is not INamedTypeSymbol eventNodeSymbol)
             return (null!, null!);
 
         // Check if the base type is generic and is of type `Event`

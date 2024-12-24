@@ -32,7 +32,9 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
 
     private static bool IsCandidateForGeneration(SyntaxNode syntaxNode)
     {
-        if (syntaxNode is not RecordDeclarationSyntax declarationSyntax) return false;
+        if (syntaxNode is not RecordDeclarationSyntax && syntaxNode is not ClassDeclarationSyntax) return false;
+        
+        var declarationSyntax =  (syntaxNode as TypeDeclarationSyntax)!;
 
         var x = declarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString().StartsWith("IEvent<")) ?? false;
         return x;
@@ -40,9 +42,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
 
     private static INamedTypeSymbol? GetRecordDeclarationNamedSymbol(GeneratorSyntaxContext context)
     {
-        // Get the symbol for the record declaration
-        var recordDeclaration = (RecordDeclarationSyntax)context.Node;
-        if (context.SemanticModel.GetDeclaredSymbol(recordDeclaration) is not INamedTypeSymbol symbol)
+        if (context.SemanticModel.GetDeclaredSymbol(context.Node) is not INamedTypeSymbol symbol)
             return null;
 
         return symbol.Interfaces.Any(i => i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"))
