@@ -2,7 +2,7 @@ using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CustomerManagementSystem.Domain;
+namespace CustomerManagementSystem.Domain.Extensions;
 
 public static class DomainServiceExtension
 {

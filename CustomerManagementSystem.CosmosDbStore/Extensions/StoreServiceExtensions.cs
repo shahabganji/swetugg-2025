@@ -3,7 +3,7 @@ using CustomerManagementSystem.Domain;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CustomerManagementSystem.CosmosDbStore;
+namespace CustomerManagementSystem.CosmosDbStore.Extensions;
 
 public static class StoreServiceExtensions
 {

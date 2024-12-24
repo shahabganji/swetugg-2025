@@ -1,7 +1,7 @@
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
-using CustomerManagementSystem.CosmosDbStore;
-using CustomerManagementSystem.Domain;
+using CustomerManagementSystem.CosmosDbStore.Extensions;
+using CustomerManagementSystem.Domain.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
