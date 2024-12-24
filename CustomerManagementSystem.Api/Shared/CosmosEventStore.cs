@@ -18,16 +18,15 @@ public sealed class CosmosEventStore : IEventStore
     /// Appends an event to the end of the stream
     /// </summary>
     /// <param name="event">The event to be stored in the stream</param>
-    /// <typeparam name="TE">Generic type, because of serialization and inheritance</typeparam>
-    public async Task Append<TE>(TE @event) where TE : Event
+    public async Task Append(StoredEvent @event)
     {
-        // var customer = await Get(@event.StreamId) ?? new();
+        // var customer = await GetEntity(@event.StreamId) ?? new();
         // customer.Apply(@event);
 
         var transactionalBatch = _container.CreateTransactionalBatch(new PartitionKey(@event.StreamId.ToString()));
 
         // transactionalBatch.UpsertItem(customer);
-        transactionalBatch.UpsertItem<Event>(@event);
+        transactionalBatch.UpsertItem(@event);
 
         _ = await transactionalBatch.ExecuteAsync(CancellationToken.None);
 
@@ -41,17 +40,17 @@ public sealed class CosmosEventStore : IEventStore
     /// </summary>
     /// <param name="streamId">The unique identifier of the stream</param>
     /// <returns></returns>
-    public async Task<Maybe<TA>> Get<TA>(Guid streamId) where TA : IAmAggregateRoot, new()
+    public async Task<IReadOnlyCollection<StoredEvent>> GetEvents(Guid streamId)
     {
         var streamIterator =
-            _container.GetItemQueryIterator<Event>(
+            _container.GetItemQueryIterator<StoredEvent>(
                 new QueryDefinition($"SELECT * FROM c WHERE c.StreamId = '{streamId}' AND c.id <> '{streamId}'"));
 
         if (!streamIterator.HasMoreResults)
-            return default;
+            return [];
 
-        TA? aggregate = default(TA);
-
+        var events = new List<StoredEvent>();
+        
         while (streamIterator.HasMoreResults)
         {
             var readNext = await streamIterator.ReadNextAsync();
@@ -59,18 +58,16 @@ public sealed class CosmosEventStore : IEventStore
             if (readNext.Count == 0)
                 continue;
 
-            aggregate ??= new TA();
-
-            foreach (var @event in readNext.Resource)
-            {
-                aggregate.Apply(@event);
-            }
+            events.AddRange(readNext.Resource);
         }
 
-        if (aggregate is null)
-            throw new AggregateNotFoundException(streamId);
+        return events;
 
-        return aggregate;
+    }
+
+    public Task SaveStream(CancellationToken cancellation)
+    {
+        return Task.CompletedTask;
     }
 
     /// <summary>

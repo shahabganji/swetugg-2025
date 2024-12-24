@@ -4,7 +4,8 @@ namespace CustomerManagementSystem.Api.Shared;
 
 public interface IEventStore
 {
-    Task Append<TE>(TE @event) where TE : Event;
-    Task<Maybe<TA>> Get<TA>(Guid streamId) where TA : IAmAggregateRoot, new();
+    Task Append(StoredEvent @event);
+    Task<IReadOnlyCollection<StoredEvent>> GetEvents(Guid streamId);
+    Task SaveStream(CancellationToken cancellation);
     Task<Maybe<TA>> GetSnapshot<TA>(Guid streamId) where TA : IAmAggregateRoot, new();
 }

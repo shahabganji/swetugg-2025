@@ -8,11 +8,12 @@ public sealed class RegisterCustomerHandler(IEventStore eventStore)
 {
     public async Task Handle(RegisterCustomer command)
     {
-        var customer = await eventStore.Get<Customer>(command.CustomerId);
+        var stream = new EventStream<Customer>(eventStore, command.CustomerId);
+        var customer = await stream.GetEntity();
 
         if (customer.IsNone)
         {
-            await eventStore.Append(
+            await stream.Append(
                 new CustomerRegistered(command.CustomerId, command.FullName, command.Email, command.DateOfBirth));
         }
     }

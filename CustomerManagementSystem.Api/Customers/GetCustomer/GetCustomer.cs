@@ -10,7 +10,8 @@ internal sealed class GetCustomerHandler(IEventStore store)
 {
     public async Task<Maybe<Customer>> Handle(GetCustomer query)
     {
-        var customer = await store.Get<Customer>(query.id);
+        var stream = new EventStream<Customer>(store, query.id);
+        var customer = await stream.GetEntity();
         return customer;
     }
 }

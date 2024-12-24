@@ -13,4 +13,4 @@ Content-Type: application/json
 
 ###
 
-GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c797
+GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c798
