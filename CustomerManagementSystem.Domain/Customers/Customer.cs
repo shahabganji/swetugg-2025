@@ -10,7 +10,7 @@ public sealed partial class Customer : IAmAggregateRoot
     public string Email { get; private set; } = null!;
     public DateTime DateOfBirth { get; private set; }
     
-    public void Apply(Event @event)
+    public void Apply(IEvent @event)
     {
         ((dynamic)this).Apply((dynamic)@event);
     }

@@ -7,5 +7,5 @@ public interface IAmAggregateRoot
     // hence, it ends up in an infinite recursive call
     // When using an interface, it throws an exception indicating that:
     // The corresponding "Apply method" is inaccessible due to its protection level
-    public void Apply(Event @event);
+    public void Apply(IEvent @event);
 }

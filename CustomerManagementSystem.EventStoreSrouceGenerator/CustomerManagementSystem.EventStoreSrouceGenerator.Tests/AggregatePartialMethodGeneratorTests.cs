@@ -18,19 +18,16 @@ public class AggregatePartialMethodGeneratorTests
                                                          {
                                                              public Guid CustomerId { get; private set; }
                                                              
-                                                             public void Apply(Event @event)
+                                                             public void Apply(IEvent @event)
                                                              {
                                                                  ((dynamic)this).Apply((dynamic)@event);
                                                              }
                                                          }
 
-                                                         public abstract partial record Event<TA> where TA : IAmAggregateRoot, new()
-                                                         {
-                                                         }
+                                                         public partial interface IEvent<TA> where TA : IAmAggregateRoot, new();
 
-                                                         internal record EmailUpdated(Guid CustomerId, string Email) : Event<Customer>
+                                                         internal record EmailUpdated(Guid CustomerId, string Email) : IEvent<Customer>
                                                          {
-                                                             public override Guid StreamId => CustomerId;
                                                          }
                                                          """;
         //lang=csharp
@@ -87,18 +84,14 @@ public class AggregatePartialMethodGeneratorTests
                                                              }
                                                          }
 
-                                                         public abstract partial record Event<TA> where TA : IAmAggregateRoot, new()
-                                                         {
-                                                         }
+                                                         public partial interface IEvent<TA> where TA : IAmAggregateRoot, new();
 
-                                                         internal record EmailUpdated(Guid CustomerId, string Email) : Event<Customer>
+                                                         internal record EmailUpdated(Guid CustomerId, string Email) : IEvent<Customer>
                                                          {
-                                                             public override Guid StreamId => CustomerId;
                                                          }
                                                          
-                                                         internal record CustomerUpdated(Guid CustomerId, string Name) : Event<Customer>
+                                                         internal record CustomerUpdated(Guid CustomerId, string Name) : IEvent<Customer>
                                                          {
-                                                             public override Guid StreamId => CustomerId;
                                                          }
                                                          
                                                          """;
@@ -167,16 +160,14 @@ public class AggregatePartialMethodGeneratorTests
                                                              }
                                                          }
 
-                                                         public abstract partial record Event<TA> where TA : IAmAggregateRoot, new()
-                                                         {
-                                                         }
+                                                         public partial interface IEvent<TA> where TA : IAmAggregateRoot, new();
 
-                                                         internal record EmailUpdated(Guid CustomerId, string Email) : Event<Customer>
+                                                         internal record EmailUpdated(Guid CustomerId, string Email) : IEvent<Customer>
                                                          {
                                                              public override Guid StreamId => CustomerId;
                                                          }
                                                          
-                                                         internal record ItemAdded(Guid BasketId, string ProductName) : Event<Basket>
+                                                         internal record ItemAdded(Guid BasketId, string ProductName) : IEvent<Basket>
                                                          {
                                                              public override Guid StreamId => BasketId;
                                                          }

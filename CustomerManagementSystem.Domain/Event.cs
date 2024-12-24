@@ -1,9 +1,15 @@
+using System.Text.Json.Serialization;
+using CustomerManagementSystem.Domain.Customers.Register;
+using CustomerManagementSystem.Domain.Customers.UpdateContactsInfo;
+
 namespace CustomerManagementSystem.Domain;
 
-public abstract partial record Event
-{
-}
+public partial interface IEvent;
 
-public abstract record Event<TA> : Event where TA : IAmAggregateRoot, new()
-{
-}
+
+[JsonPolymorphic(IgnoreUnrecognizedTypeDiscriminators = true)]
+[JsonDerivedType(typeof(CustomerRegistered), nameof(CustomerRegistered))]
+[JsonDerivedType(typeof(EmailUpdated), nameof(EmailUpdated))]
+public partial interface IEvent;
+
+public interface IEvent<TA> : IEvent where TA : IAmAggregateRoot, new();

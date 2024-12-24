@@ -5,7 +5,7 @@ namespace CustomerManagementSystem.Domain;
 internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
     where TAggregate : IAmAggregateRoot, new()
 {
-    public void Append(Event @event)
+    public void Append(IEvent @event)
     {
         var storedEvent = new StoredEvent(streamId, DateTime.UtcNow, @event);
         store.Append(storedEvent);

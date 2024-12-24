@@ -8,7 +8,7 @@ namespace CustomerManagementSystem.CosmosDbStore;
 
 internal sealed class CosmosEventStore : IEventStore
 {
-    private sealed record CosmosStoredEvent(Guid StreamId, DateTime Timestamp, Event EventData)
+    private sealed record CosmosStoredEvent(Guid StreamId, DateTime Timestamp, IEvent EventData)
         : StoredEvent(StreamId, Timestamp, EventData)
     {
         [JsonPropertyName("id")] public string Id => Timestamp.ToString("O");

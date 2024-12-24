@@ -36,7 +36,7 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
         var x = recordDeclarationSyntax.BaseList?.Types.Any(t =>
         {
             var typeSyntax = t.Type as GenericNameSyntax;
-            return typeSyntax is { Identifier.Text: "Event", TypeArgumentList.Arguments.Count: 1 };
+            return typeSyntax is { Identifier.Text: "IEvent", TypeArgumentList.Arguments.Count: 1 };
         }) ?? false;
 
         return x;
@@ -46,21 +46,21 @@ public class AggregatePartialMethodGenerator : IIncrementalGenerator
         GeneratorSyntaxContext context)
     {
 // Get the symbol for the record declaration
-        var recordDeclaration = (RecordDeclarationSyntax)context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(recordDeclaration) as INamedTypeSymbol;
+        var eventNode = (RecordDeclarationSyntax)context.Node;
+        var eventNodeSymbol = context.SemanticModel.GetDeclaredSymbol(eventNode) as INamedTypeSymbol;
 
-        if (symbol is null)
+        if (eventNodeSymbol is null)
             return (null!, null!);
 
 // Check if the base type is generic and is of type `Event`
-        if (symbol.BaseType is { Name: "Event", TypeArguments.Length: 1 } baseTypeSymbol &&
-            baseTypeSymbol.TypeArguments[0] is INamedTypeSymbol genericArgumentSymbol)
-        {
-            // Return the type itself and the generic argument
-            return (symbol, genericArgumentSymbol);
-        }
+        if (!eventNodeSymbol.Interfaces.Any(i => i.Name == "IEvent"))
+            return (null!, null!);
 
-        return (null!, null!);
+        
+        var iEventInterface = eventNodeSymbol.Interfaces.First(i => i.Name == "IEvent");
+        var aggregateType = iEventInterface.TypeArguments[0] as INamedTypeSymbol;
+
+        return (eventNodeSymbol, aggregateType!);
     }
 
     private class AggregateInfo(string name, string @namespace, bool isSealed)
