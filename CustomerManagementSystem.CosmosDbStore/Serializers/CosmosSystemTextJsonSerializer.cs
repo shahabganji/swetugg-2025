@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Cosmos;
 
-namespace CustomerManagementSystem.Api.Shared.Serializers;
+namespace CustomerManagementSystem.CosmosDbStore.Serializers;
 
 /// <summary>
 /// Uses <see cref="Azure.Core.Serialization.JsonObjectSerializer"/> which leverages System.Text.Json providing a simple API to interact with on the Azure SDKs.
@@ -13,7 +13,7 @@ namespace CustomerManagementSystem.Api.Shared.Serializers;
 /// Inspired from: https://github.com/Azure/azure-cosmos-dotnet-v3/blob/master/Microsoft.Azure.Cosmos.Samples/Usage/SystemTextJson/CosmosSystemTextJsonSerializer.cs
 /// </remarks>
 // <SystemTextJsonSerializer>
-public class CosmosSystemTextJsonSerializer : CosmosLinqSerializer
+internal class CosmosSystemTextJsonSerializer : CosmosLinqSerializer
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 

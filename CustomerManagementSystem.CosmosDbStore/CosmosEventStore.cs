@@ -4,10 +4,9 @@ using CustomerManagementSystem.Domain.Customers;
 using CustomerManagementSystem.Domain.Fx;
 using Microsoft.Azure.Cosmos;
 
+namespace CustomerManagementSystem.CosmosDbStore;
 
-namespace CustomerManagementSystem.Api.Shared;
-
-public sealed class CosmosEventStore : IEventStore
+internal sealed class CosmosEventStore : IEventStore
 {
     private sealed record CosmosStoredEvent(Guid StreamId, DateTime Timestamp, Event EventData)
         : StoredEvent(StreamId, Timestamp, EventData)

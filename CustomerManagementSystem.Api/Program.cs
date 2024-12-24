@@ -1,9 +1,7 @@
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
-using CustomerManagementSystem.Api.Shared;
-using CustomerManagementSystem.Api.Shared.Serializers;
+using CustomerManagementSystem.CosmosDbStore;
 using CustomerManagementSystem.Domain;
-using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,25 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 builder.Services.AddCommandHandlers();
-builder.Services.AddScoped<IEventStore>(_ =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("CosmosDb");
-
-    var cosmosClient = new CosmosClient(connectionString, new CosmosClientOptions
-    {
-        ApplicationName = "Swetugg - Roslyn",
-        EnableContentResponseOnWrite = false,
-
-        Serializer = new CosmosSystemTextJsonSerializer(),
-
-        ApplicationPreferredRegions = ["Sweden Central"],
-    });
-
-    var database = cosmosClient.GetDatabase("Swetugg-Demo");
-    var container = database.GetContainer("Customers");
-
-    return new CosmosEventStore(container);
-});
+builder.Services.AddStore(builder.Configuration.GetConnectionString("CosmosDb")!);
 
 var app = builder.Build();
 
