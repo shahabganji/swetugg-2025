@@ -32,9 +32,9 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
 
     private static bool IsCandidateForGeneration(SyntaxNode syntaxNode)
     {
-        if (syntaxNode is not RecordDeclarationSyntax recordDeclarationSyntax) return false;
+        if (syntaxNode is not RecordDeclarationSyntax declarationSyntax) return false;
 
-        var x = recordDeclarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString().Contains("Event<")) ?? false;
+        var x = declarationSyntax.BaseList?.Types.Any(t => t.GetText().ToString().StartsWith("IEvent<")) ?? false;
         return x;
     }
 
@@ -42,28 +42,20 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
     {
         // Get the symbol for the record declaration
         var recordDeclaration = (RecordDeclarationSyntax)context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(recordDeclaration) as INamedTypeSymbol;
-
-        if (symbol is null)
+        if (context.SemanticModel.GetDeclaredSymbol(recordDeclaration) is not INamedTypeSymbol symbol)
             return null;
 
-        // Check if it inherits from `Event`
-        var baseType = symbol.BaseType;
-
-        return baseType?.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.Event<") == true
+        return symbol.Interfaces.Any(i => i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"))
             ? symbol
             : null;
     }
 
     private static void GenerateSource(SourceProductionContext context, ImmutableArray<INamedTypeSymbol> derivedTypes)
     {
-        var baseType = derivedTypes.First().BaseType;
-        if (baseType == null)
-        {
-            return;
-        }
+        var eventInterface = derivedTypes.First().Interfaces
+            .First(i => i.ToDisplayString().StartsWith("CustomerManagementSystem.Domain.IEvent<"));
 
-        var eventNamespace = baseType.ContainingNamespace.ToDisplayString();
+        var eventNamespace = eventInterface.ContainingNamespace.ToDisplayString();
 
         var derivedTypesNamespaces = derivedTypes
             .Select(t => $"using {t.ContainingNamespace.ToDisplayString()};")
@@ -90,9 +82,7 @@ public class JsonAttributesEventGenerator : IIncrementalGenerator
             sb.AppendLine($"[JsonDerivedType(typeof({derivedType!.Name}), nameof({derivedType.Name}))]");
         }
 
-        sb.Append($"public abstract partial record {baseType.Name}");
-        sb.Append(" {");
-        sb.Append(" }");
+        sb.Append($"public partial interface {eventInterface.Name};");
         sb.AppendLine();
 
         context.AddSource("EventsJsonAttributes.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
