@@ -22,26 +22,24 @@ public sealed class CosmosEventStore : IEventStore
         _container = container;
     }
 
+    private readonly IDictionary<Guid, List<CosmosStoredEvent>> streams =
+        new Dictionary<Guid, List<CosmosStoredEvent>>();
+
     /// <summary>
     /// Appends an event to the end of the stream
     /// </summary>
     /// <param name="event">The event to be stored in the stream</param>
-    public async Task Append(StoredEvent @event)
+    public void Append(StoredEvent @event)
     {
-        var storedEvent = new CosmosStoredEvent(@event.StreamId, @event.Timestamp, @event.EventData);
-        // var customer = await GetEntity(@event.StreamId) ?? new();
-        // customer.Apply(@event);
-
-        var transactionalBatch = _container.CreateTransactionalBatch(new PartitionKey(storedEvent.StreamId.ToString()));
-
-        // transactionalBatch.UpsertItem(customer);
-        transactionalBatch.UpsertItem(storedEvent);
-
-        _ = await transactionalBatch.ExecuteAsync(CancellationToken.None);
-
-        Console.WriteLine($@"Event written to the database: {@event.StreamId}");
-
-        // await _container.UpsertItemAsync<Event>(@event, new PartitionKey(@event.StreamId.ToString()));
+        if (streams.TryGetValue(@event.StreamId, out var storedEvents))
+        {
+            storedEvents.Add(new CosmosStoredEvent(@event.StreamId, @event.Timestamp, @event.EventData));
+        }
+        else
+        {
+            streams.Add(@event.StreamId,
+                [new CosmosStoredEvent(@event.StreamId, @event.Timestamp, @event.EventData)]);
+        }
     }
 
     /// <summary>
@@ -73,9 +71,21 @@ public sealed class CosmosEventStore : IEventStore
         return events;
     }
 
-    public Task SaveStream(CancellationToken cancellation)
+    public async Task SaveStream(CancellationToken cancellation)
     {
-        return Task.CompletedTask;
+        foreach (var (key, events) in streams)
+        {
+            var streamId = key.ToString();
+            var transactionalBatch = _container.CreateTransactionalBatch(new PartitionKey(streamId));
+
+            foreach (var storedEvent in events)
+            {
+                transactionalBatch.UpsertItem(storedEvent);
+                // await _container.UpsertItemAsync<Event>(@event, new PartitionKey(@event.StreamId.ToString()));   
+            }
+
+            _ = await transactionalBatch.ExecuteAsync(CancellationToken.None);
+        }
     }
 
     /// <summary>

@@ -5,10 +5,10 @@ namespace CustomerManagementSystem.Api.Shared;
 internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
     where TAggregate : IAmAggregateRoot, new()
 {
-    public async Task Append(Event @event)
+    public void Append(Event @event)
     {
         var storedEvent = new StoredEvent(streamId, DateTime.UtcNow, @event);
-        await store.Append(storedEvent);
+        store.Append(storedEvent);
     }
     
     public async Task<Maybe<TAggregate>> GetEntity()
@@ -16,7 +16,10 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
         var events = await store.GetEvents(streamId);
 
         if (events.Count == 0)
+        {
+            // Replace this with throw exception for demo purposes
             return Maybe.None;
+        }
         
         TAggregate aggregate = new ();
         foreach (var evt in events)
@@ -26,5 +29,4 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
 
         return aggregate;
     }
-    
 }

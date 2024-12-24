@@ -13,8 +13,9 @@ public sealed class RegisterCustomerHandler(IEventStore eventStore)
 
         if (customer.IsNone)
         {
-            await stream.Append(
+            stream.Append(
                 new CustomerRegistered(command.CustomerId, command.FullName, command.Email, command.DateOfBirth));
+            await eventStore.SaveStream(CancellationToken.None);
         }
     }
 }
