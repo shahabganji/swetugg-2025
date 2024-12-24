@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CustomerManagementSystem.Api.Customers;
 using CustomerManagementSystem.Api.Shared.Fx;
 using Microsoft.Azure.Cosmos;
@@ -7,6 +8,13 @@ namespace CustomerManagementSystem.Api.Shared;
 
 public sealed class CosmosEventStore : IEventStore
 {
+    private sealed record CosmosStoredEvent(Guid StreamId, DateTime Timestamp, Event EventData)
+        : StoredEvent(StreamId, Timestamp, EventData)
+    {
+        [JsonPropertyName("id")] public string Id => Timestamp.ToString("O");
+        [JsonPropertyName("pk")] public string Pk => StreamId.ToString();
+    }
+
     private readonly Container _container;
 
     public CosmosEventStore(Container container)
@@ -20,13 +28,14 @@ public sealed class CosmosEventStore : IEventStore
     /// <param name="event">The event to be stored in the stream</param>
     public async Task Append(StoredEvent @event)
     {
+        var storedEvent = new CosmosStoredEvent(@event.StreamId, @event.Timestamp, @event.EventData);
         // var customer = await GetEntity(@event.StreamId) ?? new();
         // customer.Apply(@event);
 
-        var transactionalBatch = _container.CreateTransactionalBatch(new PartitionKey(@event.StreamId.ToString()));
+        var transactionalBatch = _container.CreateTransactionalBatch(new PartitionKey(storedEvent.StreamId.ToString()));
 
         // transactionalBatch.UpsertItem(customer);
-        transactionalBatch.UpsertItem(@event);
+        transactionalBatch.UpsertItem(storedEvent);
 
         _ = await transactionalBatch.ExecuteAsync(CancellationToken.None);
 
@@ -50,7 +59,7 @@ public sealed class CosmosEventStore : IEventStore
             return [];
 
         var events = new List<StoredEvent>();
-        
+
         while (streamIterator.HasMoreResults)
         {
             var readNext = await streamIterator.ReadNextAsync();
@@ -62,7 +71,6 @@ public sealed class CosmosEventStore : IEventStore
         }
 
         return events;
-
     }
 
     public Task SaveStream(CancellationToken cancellation)
