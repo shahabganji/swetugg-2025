@@ -7,12 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\CustomerManagementSystem.CosmosDbStore\CustomerManagementSystem.CosmosDbStore.csproj" />
         <ProjectReference Include="..\CustomerManagementSystem.Domain\CustomerManagementSystem.Domain.csproj"/>
+        <ProjectReference Include="..\CustomerManagementSystem.WebApp\CustomerManagementSystem.WebApp.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
-@api_host = https://localhost:7078
+@api_host = https://localhost:7078/api
 
-POST {{api_host}}/customer/
+POST {{api_host}}/customers/
 Accept: application/json
 Content-Type: application/json
 
@@ -13,4 +13,9 @@ Content-Type: application/json
 
 ###
 
-GET {{api_host}}/customer/8b311274-10c1-4a41-bbac-e6477e16c802
+GET {{api_host}}/customers/8b311274-10c1-4a41-bbac-e6477e16c802
+
+
+###
+
+GET {{api_host}}/customers
