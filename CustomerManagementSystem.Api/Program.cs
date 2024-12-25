@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using CustomerManagementSystem.Api.Contracts;
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.CosmosDbStore.Extensions;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddAntiforgery();
+builder.Services.AddAntiforgery();
 
 builder.Services.AddResponseCompression(options =>
 {
@@ -42,14 +43,17 @@ app.UseBlazorFrameworkFiles();
 // blazor application has some static files, that required to be served
 app.UseStaticFiles();
 
-// app.UseAntiforgery();
-
+app.UseAntiforgery();
 
 var apiGroup = app.MapGroup("/api");
 
-apiGroup.MapPost("/customers", async (RegisterCustomer command, RegisterCustomerHandler handler) =>
+apiGroup.MapPost("/customers", async (RegisterCustomerDto registration, RegisterCustomerHandler handler) =>
     {
+        var command = new RegisterCustomer(
+            Guid.CreateVersion7(), registration.FullName, registration.Email, registration.BirthDate);
+        
         await handler.Handle(command);
+        
         return Results.CreatedAtRoute("GetCustomer", new { id = command.CustomerId });
     })
     .WithName("RegisterCustomer");

@@ -1,0 +1,134 @@
+@page "/customers/register"
+@using CustomerManagementSystem.Api.Contracts
+@inject HttpClient Http
+@inject NavigationManager Navigator
+<PageTitle>Register</PageTitle>
+
+<section class="container-md">
+
+    <div class="card text-center @(Saved ? "border-success" : string.Empty) @(Error ? "border-danger" : string.Empty)">
+        <div class="card-header @(Saved ? "bg-success" : string.Empty) @(Error ? "bg-danger" : string.Empty)">
+            Register
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Enter your information in the form below</h5>
+            <p class="card-text">By clicking on the Register button you agree to terms and conditions.</p>
+
+            <div class="form-floating container container-fluid">
+
+                <EditForm Model="Customer" OnValidSubmit="@RegisterCustomer" OnInvalidSubmit="@HandleInvalidSubmit">
+                    <ChildContent Context="formChildContent">
+
+                        <AntiforgeryToken/>
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="fullName" class="col-form-label">FulName</label>
+                            </div>
+                            <div class="col-auto">
+                                <InputText @bind-Value="Customer.FullName"
+                                           id="fullName" class="form-control"
+                                           aria-describedby="fullNameHelpInline"></InputText>
+
+                            </div>
+                            <ValidationMessage class="offset-md-3 col-md-8" For="() => Customer.FullName"/>
+                            <div class="col-auto">
+                            <span id="fullNameHelpInline" class="form-text">
+                                Must be your FirstName LastName e.g. Jane Doe.
+                            </span>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="fullName" class="col-form-label">Email</label>
+                            </div>
+                            <div class="col-auto">
+                                <InputText @bind-Value="Customer.Email"
+                                           id="email" class="form-control"
+                                           aria-describedby="emailHelpInline"></InputText>
+                            </div>
+                            <ValidationMessage class="offset-md-3 col-md-8" For="() => Customer.Email"/>
+                            <div class="col-auto">
+                            <span id="emailHelpInline" class="form-text">
+                                Enter your email address. e.g. jane.doe@example.com.
+                            </span>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="birthdate" class="col-form-label">Date of Birth</label>
+                            </div>
+                            <div class="col-auto">
+                                <InputDate @bind-Value="Customer.BirthDate"
+                                           id="birthdate" class="form-control"
+                                           aria-describedby="birthdateHelpInline"></InputDate>
+                            </div>
+                            <ValidationMessage class="offset-md-3 col-md-8" For="() => Customer.BirthDate"/>
+                            <div class="col-auto">
+                            <span id="birthdateHelpInline" class="form-text">
+                                Enter your email address. e.g. 28.12.1985
+                            </span>
+                            </div>
+                        </div>
+                        <hr/>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                        <button type="reset" class="btn btn-secondary">Clear</button>
+                    </ChildContent>
+                </EditForm>
+
+
+            </div>
+
+        </div>
+        <div class="card-footer text-body-secondary text-end">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+    </div>
+
+</section>
+
+@code {
+
+    public required RegisterCustomerDto Customer { get; set; }
+    public required bool Saved { get; set; }
+    public required bool Error { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        Customer = new RegisterCustomerDto();
+
+        Saved = Error = false;
+        
+        return base.OnInitializedAsync();
+    }
+
+    private async Task RegisterCustomer()
+    {
+        var response = await Http.PostAsJsonAsync("api/customers", Customer);
+        if (response.IsSuccessStatusCode)
+        {
+            Saved = true;
+            Error = false;
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(3000);
+            Navigator.NavigateTo("/");
+        }
+        else
+        {
+            Error = true;
+            Saved = false;
+        }
+    }
+
+    private Task HandleInvalidSubmit()
+    {
+        throw new NotImplementedException();
+    }
+
+}
