@@ -15,9 +15,10 @@ internal sealed class EventStream<TAggregate>(IEventStore store, Guid streamId)
     {
         var events = await store.GetEvents(streamId);
 
+        // TODO: Think: Maybe not using in here but using the exception in the confirmation scenario
         if (events.Count == 0)
         {
-            throw new InvalidOperationException("No events found");
+            return Maybe.None;
         }
 
         TAggregate aggregate = new();

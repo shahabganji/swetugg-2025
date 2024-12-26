@@ -1,3 +1,3 @@
 namespace CustomerManagementSystem.Domain.Customers.Register;
 
-internal sealed partial record RegistrationConfirmed(Guid CustomerId) : IEvent<Customer>;
+public sealed partial record RegistrationConfirmed(Guid CustomerId) : IEvent<Customer>;

@@ -9,6 +9,9 @@ public static class DomainServiceExtension
     public static void AddCommandHandlers(this IServiceCollection services)
     {
         services.AddScoped<GetCustomerHandler>();
+        services.AddScoped<GetAllCustomersHandler>();
+        
         services.AddScoped<RegisterCustomerHandler>();
+        services.AddScoped<ConfirmRegistrationHandler>();
     }
 }

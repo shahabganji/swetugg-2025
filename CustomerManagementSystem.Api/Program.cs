@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using CustomerManagementSystem.Api.Contracts;
+using CustomerManagementSystem.Api.Customers;
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.CosmosDbStore.Extensions;
@@ -46,40 +47,7 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 var apiGroup = app.MapGroup("/api");
-
-apiGroup.MapPost("/customers", async (RegisterCustomerDto registration, RegisterCustomerHandler handler) =>
-    {
-        var command = new RegisterCustomer(
-            Guid.CreateVersion7(), registration.FullName, registration.Email, registration.BirthDate);
-        
-        await handler.Handle(command);
-        
-        return Results.CreatedAtRoute("GetCustomer", new { id = command.CustomerId });
-    })
-    .WithName("RegisterCustomer");
-
-apiGroup.MapGet("/customers", async context =>
-    {
-        await Results.Ok(new object[]
-        {
-            new
-            {
-                Id = Guid.NewGuid(), FullName = "John Doe", Email = "johndoe@example.com", IsConfirmed = false
-            },
-            new
-            {
-                Id = Guid.NewGuid(), FullName = "Jane Doe", Email = "jane.doe@example.com", IsConfirmed = true
-            },
-        }).ExecuteAsync(context);
-    })
-    .WithName("GetCustomers");
-
-apiGroup.MapGet("/customers/{id}", async (Guid id, GetCustomerHandler handler) =>
-    {
-        var customer = await handler.Handle(new GetCustomer(id));
-        return customer.Match(() => Results.NotFound(), Results.Ok);
-    })
-    .WithName("GetCustomer");
+apiGroup.MapCustomersEndpoints();
 
 // if the requested route does not exist, then route it to the index.html file
 app.MapFallbackToFile("index.html");

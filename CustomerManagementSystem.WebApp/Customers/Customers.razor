@@ -1,5 +1,5 @@
 ﻿@page "/customers"
-@using System.Collections.Immutable
+@using CustomerManagementSystem.Api.Contracts
 @inject HttpClient Http
 
 <PageTitle>Customers</PageTitle>
@@ -43,7 +43,8 @@
                         else
                         {
                             <i class="bi bi-x-circle-fill" style="color: darkred"></i>
-                            <button class="btn btn-sm btn-secondary">
+                            <button class="btn btn-sm btn-secondary"
+                                    onclick="@(async () => await ConfirmRegistration(customer))">
                                 Confirm Registration
                             </button>
                         }
@@ -56,11 +57,22 @@
 </div>
 
 @code {
-    ICollection<Customer>? _customers = null;
 
+    ICollection<CustomerDto>? _customers = null;
     protected override async Task OnInitializedAsync()
     {
-        _customers = (await Http.GetFromJsonAsync<IEnumerable<Customer>>("api/customers"))?.ToImmutableList();
+        _customers = await Http.GetFromJsonAsync<ICollection<CustomerDto>>("api/customers");
+    }
+
+    private async Task ConfirmRegistration(CustomerDto customer)
+    {
+        var response = await Http.PutAsync($"api/customers/{customer.Id}/confirm", null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            customer.IsConfirmed = true;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
 }

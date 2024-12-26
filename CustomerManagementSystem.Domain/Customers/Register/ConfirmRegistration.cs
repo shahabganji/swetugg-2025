@@ -1,11 +1,29 @@
+using CustomerManagementSystem.Domain.Fx;
+
 namespace CustomerManagementSystem.Domain.Customers.Register;
 
 public sealed record ConfirmRegistration(Guid CustomerId);
 
 public sealed class ConfirmRegistrationHandler(IEventStore eventStore)
 {
-    public Task Handle(ConfirmRegistration command)
+    public async Task<Maybe<Customer>> Handle(ConfirmRegistration command)
     {
-        throw new NotImplementedException();
+        var stream = new EventStream<Customer>(eventStore, command.CustomerId);
+
+        var customer = await stream.GetEntity();
+
+        if (customer.IsNone)
+        {
+            throw new Exception("Customer not found");
+        }
+
+        if (customer.UnwrappedValue.IsRegistrationConfirmed)
+            return customer;
+
+        stream.Append(new RegistrationConfirmed(command.CustomerId));
+
+        await eventStore.SaveStream(CancellationToken.None);
+
+        return customer;
     }
 }

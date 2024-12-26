@@ -109,4 +109,27 @@ internal sealed class CosmosEventStore : IEventStore
             throw new InvalidOperationException("No stream found");
         }
     }
+
+    public async Task<IEnumerable<Guid>> GetStreamIds()
+    {
+        const string selectQuery = "SELECT Value(c.StreamId) FROM c";
+        var streamIterator = _container.GetItemQueryIterator<Guid>(new QueryDefinition(selectQuery));
+
+        if (!streamIterator.HasMoreResults)
+            return [];
+
+        var streamIds = new List<Guid>();
+
+        while (streamIterator.HasMoreResults)
+        {
+            var readNext = await streamIterator.ReadNextAsync();
+
+            if (readNext.Count == 0)
+                continue;
+
+            streamIds.AddRange(readNext.Resource);
+        }
+
+        return streamIds.Distinct();
+    }
 }
