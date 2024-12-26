@@ -1,6 +1,6 @@
 using System.Net.Mime;
 using CustomerManagementSystem.Api.Contracts;
-using CustomerManagementSystem.Api.Customers;
+using CustomerManagementSystem.Api.Endpoints;
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.CosmosDbStore.Extensions;
@@ -47,9 +47,9 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 var apiGroup = app.MapGroup("/api");
-apiGroup.MapCustomersEndpoints();
+apiGroup.MapCustomerEndpoints();
 
-// if the requested route does not exist, then route it to the index.html file
+// if the requested route does not exist, then route it to the index.html file, blazor landing page
 app.MapFallbackToFile("index.html");
 
 app.Run();
