@@ -112,7 +112,7 @@ internal sealed class CosmosEventStore : IEventStore
 
     public async Task<IEnumerable<Guid>> GetStreamIds()
     {
-        const string selectQuery = "SELECT Value(c.StreamId) FROM c";
+        const string selectQuery = "SELECT Distinct Value(c.StreamId) FROM c";
         var streamIterator = _container.GetItemQueryIterator<Guid>(new QueryDefinition(selectQuery));
 
         if (!streamIterator.HasMoreResults)

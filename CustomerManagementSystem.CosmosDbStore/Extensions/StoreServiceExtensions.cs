@@ -22,7 +22,7 @@ public static class StoreServiceExtensions
             });
 
             var database = cosmosClient.GetDatabase("Swetugg-Demo");
-            var container = database.GetContainer("Endpoints");
+            var container = database.GetContainer("Customers");
 
             return new CosmosEventStore(container);
         });
