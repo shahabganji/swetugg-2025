@@ -18,6 +18,15 @@ internal static partial class CustomerEndpoints
                 })
                 .WithName("GetCustomers");
 
+            apiGroup.MapGet("/customers/{id:guid}", async (Guid id, GetCustomerHandler handler) =>
+                {
+                    var customer = await handler.Handle(new GetCustomer(id));
+                    return customer.Match(
+                        () => Results.NotFound(),
+                        c => Results.Ok(new CustomerDto(c.CustomerId, c.FullName, c.Email, c.IsRegistrationConfirmed)));
+                })
+                .WithName("GetCustomerWithId");
+
             apiGroup.MapPut("/customers/{id}/confirm", async (Guid id, ConfirmRegistrationHandler handler) =>
                 {
                     var customer = await handler.Handle(new ConfirmRegistration(id));
@@ -27,6 +36,5 @@ internal static partial class CustomerEndpoints
                 })
                 .WithName("ConfirmRegistration");
         }
-
     }
 }

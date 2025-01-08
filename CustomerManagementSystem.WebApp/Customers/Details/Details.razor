@@ -1,0 +1,71 @@
+@page "/customers/{CustomerId:guid}"
+@using CustomerManagementSystem.Api.Contracts
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+
+@if (Customer is not null)
+{
+    <PageTitle>@Customer.FullName</PageTitle>
+
+    <section class="container-md">
+
+        <div class="card text-center @(Customer.IsConfirmed ? "border-success" : "border-warning")">
+
+            <div class="card-body">
+                <h5 class="card-title @(Customer.IsConfirmed ? "bg-success" : "bg-warning")">@Customer.FullName</h5>
+
+                <div class="form-floating container container-fluid">
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="fullName" class="col-form-label">FulName</label>
+                        </div>
+                        <div class="col-auto">
+                            <InputText @bind-Value="Customer.FullName"
+                                       id="fullName" readonly="readonly"
+                                       class="form-control"
+                                       aria-describedby="fullNameHelpInline"></InputText>
+
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="fullName" class="col-form-label">Email</label>
+                        </div>
+                        <div class="col-auto">
+                            <InputText @bind-Value="Customer.Email"
+                                       id="email" readonly="readonly"
+                                       class="form-control"
+                                       aria-describedby="emailHelpInline"></InputText>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="card-footer text-body-secondary text-end">
+                <NavLink class="nav-link" @onclick="GoBack" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Back
+                </NavLink>
+            </div>
+        </div>
+    </section>
+}
+
+@code {
+
+    [Parameter] public Guid CustomerId { get; set; }
+    [Parameter] public required CustomerDto? Customer { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Customer = await Http.GetFromJsonAsync<CustomerDto>($"api/customers/{CustomerId}");
+    }
+
+    private async Task GoBack()
+    {
+        await JsRuntime.InvokeVoidAsync("history.back");
+    }
+
+}

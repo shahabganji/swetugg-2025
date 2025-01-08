@@ -19,4 +19,8 @@
       <ProjectReference Include="..\CustomerManagementSystem.Api.Contracts\CustomerManagementSystem.Api.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <AdditionalFiles Include="Customers\Details\Details.razor" />
+    </ItemGroup>
+
 </Project>
