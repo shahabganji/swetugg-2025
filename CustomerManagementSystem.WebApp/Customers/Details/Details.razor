@@ -1,13 +1,13 @@
 @page "/customers/{CustomerId:guid}"
+@using System.Net
 @using CustomerManagementSystem.Api.Contracts
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime
 
-@if (Customer is not null)
-{
-    <PageTitle>@Customer.FullName</PageTitle>
-
-    <section class="container-md">
+<section class="container-md">
+    @if (Customer is not null)
+    {
+        <PageTitle>@Customer.FullName</PageTitle>
 
         <div class="card text-center @(Customer.IsConfirmed ? "border-success" : "border-warning")">
 
@@ -50,17 +50,43 @@
                 </NavLink>
             </div>
         </div>
-    </section>
-}
+    }
+    else
+    {
+        @if (isNotFound)
+        {
+                    <PageTitle>Customer not found</PageTitle>
+            <div class="card text-center border-danger">
+                <div class="card-body">
+                    <h1 class="card-title bg-danger">Customer not found</h1>
+                    <p>The customer with the id @CustomerId was not found.</p>
+                </div>
+            </div>
+        }
+    }
+</section>
 
 @code {
 
     [Parameter] public Guid CustomerId { get; set; }
     [Parameter] public required CustomerDto? Customer { get; set; }
 
+    private bool isNotFound = false;
+
     protected override async Task OnInitializedAsync()
     {
-        Customer = await Http.GetFromJsonAsync<CustomerDto>($"api/customers/{CustomerId}");
+        var response = await Http.GetAsync($"api/customers/{CustomerId}");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            Customer = null;
+            isNotFound = true;
+        }
+        else
+        {
+            Customer = await response.Content.ReadFromJsonAsync<CustomerDto>();
+            isNotFound = false;
+        }
+        // Customer = await Http.GetFromJsonAsync<CustomerDto>($"api/customers/{CustomerId}");
     }
 
     private async Task GoBack()
