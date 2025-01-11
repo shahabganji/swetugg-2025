@@ -19,51 +19,70 @@
         </thead>
         <tbody>
 
-        <Virtualize Items="_customers">
-            <EmptyContent>
-                <tr>
-                    <td colspan="4" class="text-center">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
+        @if (_customers is null)
+        {
+            <tr class="bg-light-subtle">
+                <td colspan="4" class="text-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    </td>
-                </tr>
-            </EmptyContent>
-            <ChildContent>
-                <tr>
-                    <td class="col-sm-3">@context.Id</td>
-                    <td class="col-sm-3">@context.FullName</td>
-                    <td>@context.Email</td>
-                    <td class="col-sm-2">
-                        @if (context.IsConfirmed)
-                        {
-                            <i class="bi bi-check-circle-fill" style="color: green;"></i>
-                        }
-                        else
-                        {
-                            <i class="bi bi-x-circle-fill" style="color: darkred"></i>
-                            <button class="btn btn-sm btn-secondary"
-                                    onclick="@(async () => await ConfirmRegistration(context))">
-                                Confirm Registration
-                            </button>
-                        }
-                        <a class="btn btn-link" href="customers/@context.Id">
-                            Show Details
-                        </a>
-                    </td>
-                </tr>
-            </ChildContent>
-        </Virtualize>
+                    </div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            <Virtualize Items="_customers">
+                <EmptyContent>
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <div class="alert alert-primary text-center" role="alert">
+                                There are no customers registered yet
+                                <div class="nav-item px-5 text-center">
+                                    <NavLink class="nav-link link-primary" style="font-size: 2.0rem;"
+                                             href="customers/register">
+                                        <i class="bi bi-person-add" style="color: dodgerblue;"></i> Register
+                                    </NavLink>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </EmptyContent>
 
+                <ChildContent>
+                    <tr>
+                        <td class="col-sm-3">@context.Id</td>
+                        <td class="col-sm-3">@context.FullName</td>
+                        <td>@context.Email</td>
+                        <td class="col-sm-2">
+                            @if (context.IsConfirmed)
+                            {
+                                <i class="bi bi-check-circle-fill" style="color: green;"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle-fill" style="color: darkred"></i>
+                                <button class="btn btn-sm btn-secondary"
+                                        onclick="@(async () => await ConfirmRegistration(context))">
+                                    Confirm Registration
+                                </button>
+                            }
+                            <a class="btn btn-link" href="customers/@context.Id">
+                                Show Details
+                            </a>
+                        </td>
+                    </tr>
+                </ChildContent>
+            </Virtualize>
+        }
         </tbody>
     </table>
 </div>
 
 @code {
 
-    ICollection<CustomerDto>? _customers = [];
+    ICollection<CustomerDto>? _customers = null;
 
     protected override async Task OnInitializedAsync()
     {
