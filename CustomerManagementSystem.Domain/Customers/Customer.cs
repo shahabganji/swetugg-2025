@@ -10,7 +10,6 @@ public sealed partial class Customer : IAmAggregateRoot
     public string FullName { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public DateTime DateOfBirth { get; private set; }
-
     public bool IsRegistrationConfirmed { get; private set; }
 
     public void Apply(IEvent @event)
@@ -18,7 +17,7 @@ public sealed partial class Customer : IAmAggregateRoot
         ((dynamic)this).Apply((dynamic)@event);
     }
 
-    private partial void Apply(CustomerRegistered @event)
+    private void Apply(CustomerRegistered @event)
     {
         CustomerId = @event.CustomerId;
         FullName = @event.FullName;
@@ -26,12 +25,12 @@ public sealed partial class Customer : IAmAggregateRoot
         DateOfBirth = @event.DateOfBirth;
     }
 
-    private partial void Apply(EmailUpdated @event)
+    private void Apply(EmailUpdated @event)
     {
         Email = @event.Email;
     }
 
-    private partial void Apply(RegistrationConfirmed @event)
+    private void Apply(RegistrationConfirmed @event)
     {
         IsRegistrationConfirmed = true;
     }
