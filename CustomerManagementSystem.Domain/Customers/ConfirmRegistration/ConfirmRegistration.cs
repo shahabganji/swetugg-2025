@@ -1,6 +1,6 @@
 using CustomerManagementSystem.Domain.Fx;
 
-namespace CustomerManagementSystem.Domain.Customers.Register;
+namespace CustomerManagementSystem.Domain.Customers.ConfirmRegistration;
 
 public sealed record ConfirmRegistration(Guid CustomerId);
 

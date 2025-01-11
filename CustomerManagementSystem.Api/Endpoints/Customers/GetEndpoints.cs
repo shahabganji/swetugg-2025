@@ -1,6 +1,5 @@
 using CustomerManagementSystem.Api.Contracts;
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
-using CustomerManagementSystem.Domain.Customers.Register;
 
 namespace CustomerManagementSystem.Api.Endpoints.Customers;
 
@@ -26,15 +25,6 @@ internal static partial class CustomerEndpoints
                         c => Results.Ok(new CustomerDto(c.CustomerId, c.FullName, c.Email, c.IsRegistrationConfirmed)));
                 })
                 .WithName("GetCustomerWithId");
-
-            apiGroup.MapPut("/customers/{id}/confirm", async (Guid id, ConfirmRegistrationHandler handler) =>
-                {
-                    var customer = await handler.Handle(new ConfirmRegistration(id));
-                    return customer.Match(
-                        () => Results.NotFound(),
-                        _ => Results.Ok());
-                })
-                .WithName("ConfirmRegistration");
         }
     }
 }

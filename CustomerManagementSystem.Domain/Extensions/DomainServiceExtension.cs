@@ -1,3 +1,4 @@
+using CustomerManagementSystem.Domain.Customers.ConfirmRegistration;
 using CustomerManagementSystem.Domain.Customers.GetCustomer;
 using CustomerManagementSystem.Domain.Customers.Register;
 using Microsoft.Extensions.DependencyInjection;

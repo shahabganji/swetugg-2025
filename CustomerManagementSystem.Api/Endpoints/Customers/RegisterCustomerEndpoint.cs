@@ -16,7 +16,7 @@ internal static partial class CustomerEndpoints
 
                     await handler.Handle(command);
 
-                    return Results.CreatedAtRoute("GetCustomer", new { id = command.CustomerId });
+                    return Results.CreatedAtRoute("GetCustomerWithId", new { id = command.CustomerId });
                 })
                 .WithName("RegisterCustomer");
         }

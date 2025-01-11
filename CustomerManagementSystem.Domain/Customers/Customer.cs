@@ -1,3 +1,4 @@
+using CustomerManagementSystem.Domain.Customers.ConfirmRegistration;
 using CustomerManagementSystem.Domain.Customers.Register;
 using CustomerManagementSystem.Domain.Customers.UpdateContactsInfo;
 

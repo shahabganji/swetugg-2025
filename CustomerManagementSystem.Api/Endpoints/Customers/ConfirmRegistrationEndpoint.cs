@@ -1,4 +1,4 @@
-using CustomerManagementSystem.Domain.Customers.GetCustomer;
+using CustomerManagementSystem.Domain.Customers.ConfirmRegistration;
 
 namespace CustomerManagementSystem.Api.Endpoints.Customers;
 
@@ -8,12 +8,14 @@ internal static partial class CustomerEndpoints
     {
         internal static void Configure(RouteGroupBuilder apiGroup)
         {
-            apiGroup.MapPost("/customers/{id}", async (Guid id, GetCustomerHandler handler) =>
+            apiGroup.MapPut("/customers/{id}/confirm", async (Guid id, ConfirmRegistrationHandler handler) =>
                 {
-                    var customer = await handler.Handle(new GetCustomer(id));
-                    return customer.Match(() => Results.NotFound(), Results.Ok);
+                    var customer = await handler.Handle(new ConfirmRegistration(id));
+                    return customer.Match(
+                        () => Results.NotFound(),
+                        _ => Results.Ok());
                 })
-                .WithName("GetCustomer");
+                .WithName("ConfirmRegistration");
         }
     }
 }
