@@ -53,7 +53,7 @@
     }
     else
     {
-        @if (isNotFound)
+        @if (_isNotFound)
         {
                     <PageTitle>Customer not found</PageTitle>
             <div class="card text-center border-danger">
@@ -71,7 +71,7 @@
     [Parameter] public Guid CustomerId { get; set; }
     [Parameter] public required CustomerDto? Customer { get; set; }
 
-    private bool isNotFound = false;
+    private bool _isNotFound;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,12 +79,12 @@
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             Customer = null;
-            isNotFound = true;
+            _isNotFound = true;
         }
         else
         {
             Customer = await response.Content.ReadFromJsonAsync<CustomerDto>();
-            isNotFound = false;
+            _isNotFound = false;
         }
         // Customer = await Http.GetFromJsonAsync<CustomerDto>($"api/customers/{CustomerId}");
     }
