@@ -23,7 +23,7 @@ public class MaybeCodeFixProvider : CodeFixProvider
     // If you don't need the 'fix all' behaviour, return null.
     public override FixAllProvider? GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         // We link only one diagnostic and assume there is only one diagnostic in the context.
         var diagnostic = context.Diagnostics.Single();
@@ -51,31 +51,9 @@ public class MaybeCodeFixProvider : CodeFixProvider
         );
     }
 
-    private static async Task<Document> ReplaceThrowWithReturnStatement(
+    private static Task<Document> ReplaceThrowWithReturnStatement(
         Document document, CSharpSyntaxNode throwSyntaxNode, CancellationToken cancellationToken)
     {
-        var returnStatement = ReturnStatement(
-            MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("CustomerManagementSystem"),
-                            IdentifierName("Domain")),
-                        IdentifierName("Fx")),
-                    IdentifierName("Maybe")),
-                IdentifierName("None")
-                    .WithLeadingTrivia(throwSyntaxNode.GetLeadingTrivia())
-                    .WithTrailingTrivia(throwSyntaxNode.GetTrailingTrivia())
-                    .NormalizeWhitespace()));
-
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
-        var newRoot = root?.ReplaceNode(throwSyntaxNode, returnStatement);
-
-        var formattedRoot = Formatter.Format(newRoot!, Formatter.Annotation, document.Project.Solution.Workspace);
-        return document.WithSyntaxRoot(formattedRoot);
+        return Task.FromResult(document);
     }
 }

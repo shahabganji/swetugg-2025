@@ -31,7 +31,7 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
 
     private static readonly DiagnosticDescriptor Rule = new(DiagnosticId, Title, MessageFormat, Category,
         DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description
-        , customTags: [WellKnownDiagnosticTags.NotConfigurable]
+        // , customTags: [WellKnownDiagnosticTags.NotConfigurable]
     );
 
     // Keep in mind: you have to list your rules here.
@@ -51,44 +51,6 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
 
     private void AnalyzeThrowStatements(OperationAnalysisContext context)
     {
-        context.CancellationToken.ThrowIfCancellationRequested();
-
-        if (context.Operation is not IThrowOperation || context.Operation.Syntax is not ThrowStatementSyntax)
-            return;
-
-        if (context.Operation.SemanticModel is null)
-            return;
-
-        var containingMethodSyntax = GetContainingMethodSyntax(context.Operation.Syntax);
-        var containingMethodSymbol =
-            context.Operation.SemanticModel.GetDeclaredSymbol(containingMethodSyntax) as IMethodSymbol;
-
-        if (containingMethodSymbol?.ReturnType is not INamedTypeSymbol returnTypeSymbol)
-            return;
-
-        context.CancellationToken.ThrowIfCancellationRequested();
-
-        var taskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-        var isTask = returnTypeSymbol.OriginalDefinition.Equals(taskSymbol, SymbolEqualityComparer.Default);
-
-        var typeArguments = returnTypeSymbol.TypeArguments.FirstOrDefault();
-
-        var expectedReturnType = isTask ? typeArguments : returnTypeSymbol;
-        var maybeTypeSymbol = context.Compilation.GetTypeByMetadataName("CustomerManagementSystem.Domain.Fx.Maybe`1");
-
-        if (!expectedReturnType!.OriginalDefinition.Equals(maybeTypeSymbol, SymbolEqualityComparer.Default))
-            return;
-
-        var diagnostic = Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation());
-        context.ReportDiagnostic(diagnostic);
     }
 
-    private MethodDeclarationSyntax GetContainingMethodSyntax(SyntaxNode syntax)
-    {
-        while (true)
-        {
-            if (syntax.Parent is MethodDeclarationSyntax mds) return mds;
-            syntax = syntax.Parent!;
-        }
-    }
 }
