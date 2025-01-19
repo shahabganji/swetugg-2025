@@ -29,9 +29,4 @@ public sealed partial class Customer : IAmAggregateRoot
     {
         Email = @event.Email;
     }
-
-    private void Apply(RegistrationConfirmed @event)
-    {
-        IsRegistrationConfirmed = true;
-    }
 }
